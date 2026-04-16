@@ -1,0 +1,36 @@
+@startuml database
+left to right direction
+
+title Documento Star Schema
+
+package "Dimensões" {
+  class disciplina {
+      id
+      nome
+      codigo
+      faculdade
+  }
+
+  class semestro {
+      id
+      ano
+      periodo
+  }
+}
+
+package "Fatos" {
+  class documento {
+      id
+      disciplina_id
+      tipo
+      tier
+      semestro_id
+      link
+      nome
+  }
+}
+
+documento "0..*" --> "1" disciplina
+documento "0..*" --> "1" semestro
+
+@enduml

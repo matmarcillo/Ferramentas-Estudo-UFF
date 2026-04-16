@@ -1,0 +1,72 @@
+@startuml database
+left to right direction
+
+title Banco de Dados Star Schema
+
+package "Dimensões" {
+  class user {
+  }
+
+  class professor {
+      id
+      nome
+      email
+      departamento
+  }
+
+  class disciplina {
+      id
+      nome
+      codigo
+      faculdade
+  }
+
+  class semestro {
+      id
+      ano
+      periodo
+  }
+}
+
+package "Fatos" {
+  class avaliacao_disciplina {
+      id
+      estudante
+      disciplina
+      semestro
+      professor
+      metricas 1,2,3...
+  }
+
+  class avaliacao_professor {
+      id
+      estudante
+      professor
+      semestro
+      metricas 1,2,3...
+  }
+
+  class documento {
+      id
+      disciplina
+      tipo
+      tier
+      semestro
+      link
+      nome
+  }
+}
+
+avaliacao_disciplina "0..*" --> "1" user
+avaliacao_disciplina "0..*" --> "1" disciplina
+avaliacao_disciplina "0..*" --> "1" semestro
+avaliacao_disciplina "0..*" --> "1" professor
+
+avaliacao_professor "0..*" --> "1" user
+avaliacao_professor "0..*" --> "1" professor
+avaliacao_professor "0..*" --> "1" semestro
+
+documento "0..*" --> "1" disciplina
+documento "0..*" --> "1" semestro
+
+@enduml

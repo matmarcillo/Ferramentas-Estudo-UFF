@@ -1,0 +1,47 @@
+@startuml database
+left to right direction
+
+title Avaliação Disciplina Star Schema
+
+package "Dimensões" {
+  class user {
+  }
+
+  class professor {
+      id
+      nome
+      email
+      departamento
+  }
+
+  class disciplina {
+      id
+      nome
+      codigo
+      faculdade
+  }
+
+  class semestro {
+      id
+      ano
+      periodo
+  }
+}
+
+package "Fatos" {
+  class avaliacao_disciplina {
+      id
+      estudante_id
+      disciplina_id
+      semestro_id
+      professor_id
+      metricas
+  }
+}
+
+avaliacao_disciplina "0..*" --> "1" user
+avaliacao_disciplina "0..*" --> "1" disciplina
+avaliacao_disciplina "0..*" --> "1" semestro
+avaliacao_disciplina "0..*" --> "1" professor
+
+@enduml

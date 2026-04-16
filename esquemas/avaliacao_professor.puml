@@ -1,0 +1,38 @@
+@startuml database
+left to right direction
+
+title Avaliação Professor Star Schema
+
+package "Dimensões" {
+  class user {
+  }
+
+  class professor {
+      id
+      nome
+      email
+      departamento
+  }
+
+  class semestro {
+      id
+      ano
+      periodo
+  }
+}
+
+package "Fatos" {
+  class avaliacao_professor {
+      id
+      estudante_id
+      professor_id
+      semestro_id
+      metricas
+  }
+}
+
+avaliacao_professor "0..*" --> "1" user
+avaliacao_professor "0..*" --> "1" professor
+avaliacao_professor "0..*" --> "1" semestro
+
+@enduml
