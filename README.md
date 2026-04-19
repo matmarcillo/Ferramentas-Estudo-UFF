@@ -26,9 +26,18 @@ O projeto é dividido em três camadas principais:
 O banco que vamos utilizar vai ser um SQL basico, mas vai ser tipo DW num esquema estrela (tranquilo Caio, é bem simples). Basicamente significa que as tabelas não necessariamente vão ser normalizadas perfeitamente, o que é ótimo pra gente porque a gente não tem que se preocupar com joins complexos e pode focar mais na lógica do aplicativo, e nas analises dos dados.  
 **Esquema completo**: [`esquema_bd`](./esquemas/db.puml)
 
+## Backend
+
+O backend vai ser desenvolvido em Python, baseado em um API RESTful. Ele vai ser responsável por processar as avaliações, gerenciar os documentos e interagir com o banco de dados.  
+Vamos usar um framework web leve, como Flask ou FastAPI, pra facilitar o desenvolvimento e a manutenção do backend. Ele vai expor endpoints para as funcionalidades principais do aplicativo, como avaliação de disciplinas, publicação de documentos e consulta de informações.
+
+## Frontend
+
+Eu (Mateo) não conheço nada de Frontend. Mas a ideia é criar uma interface web simples e intuitiva, onde os estudantes possam facilmente avaliar suas disciplinas, acessar os documentos disponíveis e consultar as avaliações.
+
 ## Tecnologias
 
-- **Frontend**:  
+- **Frontend**: alguma framework web (React, Vue, Angular, etc.)
 - **Backend**: Python
 - **Banco de Dados**: SQL
 - **Outras**: Docker (pra implantar)
