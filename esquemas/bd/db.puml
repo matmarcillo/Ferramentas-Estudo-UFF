@@ -5,6 +5,10 @@ title Banco de Dados Star Schema
 
 package "Dimensões" {
   class user {
+    id
+    nome
+    email
+    tier
   }
 
   class professor {
