@@ -25,7 +25,7 @@ O projeto é dividido em três camadas principais:
 
 O banco que vamos utilizar vai ser um SQL basico, mas vai ser tipo DW num esquema estrela (tranquilo, é bem simples). Basicamente significa que as tabelas não necessariamente vão ser normalizadas perfeitamente, o que é ótimo pra gente porque a gente não tem que se preocupar com joins complexos e pode focar mais na lógica do aplicativo, e nas analises dos dados.  
 Ideia é ter tudas as informações relevantes a so um join de distancia, o que facilita as consultas.
-**Esquema completo**: [`esquema_bd`](./esquemas/db.puml)
+**Esquema completo**: [`esquema_bd`](docs/esquemas/db.puml)
 
 ## Backend
 

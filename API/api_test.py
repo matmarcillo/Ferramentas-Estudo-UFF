@@ -1,5 +1,7 @@
+import uvicorn
 from fastapi import FastAPI, HTTPException, Header
 import psycopg2
+from pip._internal import req
 from psycopg2.extras import RealDictCursor
 from api_types import *
 import os
@@ -10,23 +12,27 @@ def get_db():
     return psycopg2.connect(
         host=os.getenv("DB_HOST", "localhost"),
         database=os.getenv("DB_NAME", "mydb"),
-        user=os.getenv("DB_USER", "myuser"),
-        password=os.getenv("DB_PASSWORD", "mypassword")
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASSWORD", "password")
     )
+
+@app.get("/status")
+def status():
+    return "Hello World"
 
 @app.post("/user")
 def create_user(req: CreateUser):
     with get_db() as conn:
         with conn.cursor() as cursor:
-            cursor.execute('SELECT id FROM "user" WHERE email = %s', (req.email,))
+            cursor.execute('SELECT id FROM usuarios WHERE email = %s', (req.email,))
             if cursor.fetchone() is not None:
                 raise HTTPException(status_code=400, detail="Email already in use")
 
             cursor.execute(
-                'INSERT INTO "user" (nome, email, tier) VALUES (%s, %s, %s)',
+                'INSERT INTO usuarios (nome, email, tier) VALUES (%s, %s, %s)',
                 (req.nome, req.email, req.tier)
             )
-            new_id = cursor.fetchone()[0]
+            new_id = None
             conn.commit()
             return {"id": new_id, "message": "User created successfully"}
 
@@ -47,7 +53,7 @@ def create_course(req: CreateCourse):
                 "INSERT INTO disciplina (nome, codigo, faculdade) VALUES (%s, %s, %s) RETURNING id",
                 (req.nome, req.codigo, req.faculdade)
             )
-            new_id = cursor.fetchone()[0]
+            new_id = None
             conn.commit()
             return {"id": new_id, "message": "Course created successfully"}
 
@@ -62,7 +68,7 @@ def create_semester(req: CreateSemester, is_admin: bool = Header(False, descript
                 "INSERT INTO semestro (ano, periodo) VALUES (%s, %s) RETURNING id",
                 (req.ano, req.periodo)
             )
-            new_id = cursor.fetchone()[0]
+            new_id = None
             conn.commit()
             return {"id": new_id, "message": "Semester created successfully"}
 
@@ -78,7 +84,7 @@ def create_professor(req: CreateProfessor):
                 "INSERT INTO professor (nome, email, departamento) VALUES (%s, %s, %s) RETURNING id",
                 (req.nome, req.email, req.departamento)
             )
-            new_id = cursor.fetchone()[0]
+            new_id = None
             conn.commit()
             return {"id": new_id, "message": "Professor created successfully"}
 
@@ -96,7 +102,7 @@ def get_professor(professor_id: int):
 def get_user(user_id: int):
     with get_db() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute('SELECT id, nome, email, tier FROM "user" WHERE id = %s', (user_id,))
+            cursor.execute('SELECT id, nome, email, tier FROM usuarios WHERE id = %s', (user_id,))
             user = cursor.fetchone()
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
@@ -126,3 +132,11 @@ def get_course_documents(course_id: int):
             ''', (course_id,))
             documents = cursor.fetchall()
             return {"course_id": course_id, "documents": documents}
+
+
+@app.get("/course/{course_id}/reviews")
+def get_course_reviews(course_id: int):
+    pass
+
+if __name__ == "__main__":
+    uvicorn.run("api_test:app", host="0.0.0.0", port=8000, reload=True)
