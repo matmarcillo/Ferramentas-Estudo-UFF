@@ -42,3 +42,24 @@ Eu (Mateo) não conheço nada de Frontend. Mas a ideia é criar uma interface we
 - **Backend**: Python
 - **Banco de Dados**: SQL
 - **Outras**: Docker (pra implantar)
+
+## Requirements
+
+- Python 3.10 ou superior
+- Docker Desktop
+
+## Lançamento
+
+Agora na fase atual:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+```
+
+```bash
+docker compose up 
+python API/main.py
+```
