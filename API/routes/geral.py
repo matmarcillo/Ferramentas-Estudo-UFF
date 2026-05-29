@@ -4,6 +4,11 @@ from bdd import get_db
 
 router = APIRouter(tags=["General"])
 
+@router.get("/")
+def root():
+    return {"message": "Welcome to the API"}
+
+
 @router.get("/status")
 def status():
     return "API is running"
@@ -33,11 +38,15 @@ def db_status():
     
 @router.get("/tables")
 def get_tables():
-    with get_db() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
-            tables = [row[0] for row in cursor.fetchall()]
-    return {"tables": tables}
+    try:
+        with get_db() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+                    tables = [row[0] for row in cursor.fetchall()]
+                return {"tables": tables}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching tables: {str(e)}")
+
 
 @router.post("/semester")
 def create_semester(req: CreateSemester, is_admin: bool = Header(False, description="Set to true to mimic admin validation")):

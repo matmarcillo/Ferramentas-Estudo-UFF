@@ -22,6 +22,7 @@ package "Fatos" {
   class documento {
       id
       disciplina_id
+      usuario_id // Original poster
       tipo
       tier
       semestro_id
@@ -30,7 +31,31 @@ package "Fatos" {
   }
 }
 
+package "Comentarios"{
+  class comentario {
+      id
+      documento_id
+      texto
+      data
+      usuario_id
+      replies_to_id
+  }
+}
+
+package "Voting" {
+  class voto {
+      id
+      documento_id
+      valor
+      data
+      usuario_id
+  }
+}
+
 documento "0..*" --> "1" disciplina
 documento "0..*" --> "1" semestro
+comentario "0..*" --> "1" documento
+comentario "0..*" --> "0..1" comentario : replies_to
+voto "0..*" --> "1" documento
 
 @enduml

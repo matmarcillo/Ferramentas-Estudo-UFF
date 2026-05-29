@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    tier VARCHAR(50) NOT NULL
+    tier VARCHAR(50) NOT NULL,
+    exp  DECIMAL NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS professor (
@@ -52,6 +53,24 @@ CREATE TABLE IF NOT EXISTS documento (
     tipo VARCHAR(50) NOT NULL,
     tier VARCHAR(50) NOT NULL,
     semestro_id INTEGER NOT NULL REFERENCES semestro (id),
+    publicador_id INTEGER NOT NULL REFERENCES usuarios(id),
     link TEXT NOT NULL,
     nome VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comentario (
+    id SERIAL PRIMARY KEY,
+    documento_id INTEGER NOT NULL REFERENCES documento (id),
+    texto TEXT NOT NULL,
+    data TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios (id),
+    replies_to_id INTEGER REFERENCES comentario (id)
+);
+
+CREATE TABLE IF NOT EXISTS voto (
+    id SERIAL PRIMARY KEY,
+    documento_id INTEGER NOT NULL REFERENCES documento (id),
+    valor SMALLINT NOT NULL CHECK (valor IN (1, -1)),
+    data TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios (id)
 );

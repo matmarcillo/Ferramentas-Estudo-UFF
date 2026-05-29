@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from enum import Enum
 
 class CreateUser(BaseModel):
     nome: str
@@ -37,6 +38,22 @@ class CreateAvaliacaoProfessor(BaseModel):
 
 class CreateDocumento(BaseModel):
     disciplina_id: int
-    semestre_id: int
-    titulo: str
-    url: str
+    semestro_id: int
+    tipo: str
+    publicador_id: int
+
+class CreateComentario(BaseModel):
+    documento_id: int
+    texto: str
+    usuario_id: int
+    replies_to_id: int | None = None
+
+class Votes(Enum):
+    UPVOTE = 1
+    NO_VOTE = 0
+    DOWNVOTE = -1
+
+class CreateVoto(BaseModel):
+    documento_id: int
+    valor: Votes
+    usuario_id: int 
