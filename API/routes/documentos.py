@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from typing import Annotated
 from fastapi.responses import FileResponse
 from psycopg2.extras import RealDictCursor
@@ -7,6 +7,7 @@ import shutil
 import uuid
 from api_types import *
 from bdd import get_db
+from API.tests.auth import get_current_user_id
 
 VOTE_VALUE = 0.05
 
@@ -25,7 +26,8 @@ router = APIRouter(tags=["Documentos"])
 @router.post("/documento")
 def create_documento(
     req: Annotated[CreateDocumento, Form()],
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    user_id: int = Depends(get_current_user_id)
 ):
     try:
         # Save file to disk
@@ -44,7 +46,7 @@ def create_documento(
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO documento (disciplina_id, tipo, tier, semestro_id, publicador_id, link, nome) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (req.disciplina_id, req.tipo, tier_map[req.tipo], req.semestro_id, req.publicador_id, link, nome)
+                    (req.disciplina_id, req.tipo, tier_map[req.tipo], req.semestro_id, user_id, link, nome)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()
@@ -122,13 +124,13 @@ def get_documento(disciplina_id: int, documento_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documento: {str(e)}")
     
 @router.post("/{disciplina_id}/documentos/{documento_id}/comentario")
-def create_comentario(comentario: CreateComentario):
+def create_comentario(comentario: CreateComentario, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO comentario (documento_id, texto, usuario_id, replies_to_id) VALUES (%s, %s, %s, %s) RETURNING id",
-                    (comentario.documento_id, comentario.texto, comentario.usuario_id, comentario.replies_to_id)
+                    (comentario.documento_id, comentario.texto, user_id, comentario.replies_to_id)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()
@@ -137,14 +139,14 @@ def create_comentario(comentario: CreateComentario):
         raise HTTPException(status_code=500, detail=f"Erro ao criar comentário: {str(e)}")
 
 @router.post("/{disciplina_id}/documentos/{documento_id}/voto")
-def create_voto(voto: CreateVoto):
+def create_voto(voto: CreateVoto, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
-                # implémenter la vérification que c'est pas le User qui upvote son propre document, sera fait après authentification
+                # implémenter la vérification que c'est pas le User qui upvote son propre document, sera fait post authentification
                 cursor.execute(
                     "SELECT 1 FROM documento WHERE publicador_id = %s AND id = %s",
-                    (voto.usuario_id, voto.documento_id)
+                    (user_id, voto.documento_id)
                 )
                 if cursor.fetchone() is not None:
                     raise HTTPException(status_code=400, detail="Você não pode votar no seu próprio documento")
@@ -152,7 +154,7 @@ def create_voto(voto: CreateVoto):
                 # Check if the user has already voted for this document to calculate the exp change later
                 cursor.execute(
                     "SELECT valor FROM voto WHERE usuario_id = %s AND documento_id = %s",
-                    (voto.usuario_id, voto.documento_id)
+                    (user_id, voto.documento_id)
                 )
                 row = cursor.fetchone()
                 existing_vote = 0 if row is None else row[0]
@@ -161,7 +163,7 @@ def create_voto(voto: CreateVoto):
                 # le ON CONFLICT c'est stylé, je connaissais pas forcément
                 cursor.execute(
                     "INSERT INTO voto (usuario_id, documento_id, valor) VALUES (%s, %s, %s) ON CONFLICT (usuario_id, documento_id) DO UPDATE SET valor = EXCLUDED.valor",
-                    (voto.usuario_id, voto.documento_id, voto.valor.value)
+                    (user_id, voto.documento_id, voto.valor.value)
                 )
                 
                 # Update the exp of the document publisher
@@ -176,22 +178,25 @@ def create_voto(voto: CreateVoto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar voto: {str(e)}")
 
-@router.delete("/documento/{documento_id}")
-def delete_documento(documento_id: int):
+@router.delete("/documento/{documento_id}") # TODO: revoir cet enpoint
+def delete_documento(documento_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
-                # Primeiro pegue o caminho para apagar o arquivo fisico local
-                cursor.execute("SELECT link FROM documento WHERE id = %s", (documento_id,))
+                # Pegue o caminho para apagar o arquivo e verifique o dono
+                cursor.execute("SELECT link, publicador_id FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
+                
+                if doc[1] != user_id:
+                    raise HTTPException(status_code=403, detail="Você não tem permissão para apagar este documento")
                 
                 file_path = doc[0]
                 if file_path and os.path.exists(file_path):
                     os.remove(file_path)
 
-                # Delete dependent records (or handle via ON DELETE CASCADE in db if preferred setup, but manually here to be safe)
+                # Delete dependent records
                 cursor.execute("DELETE FROM comentario WHERE documento_id = %s", (documento_id,))
                 cursor.execute("DELETE FROM voto WHERE documento_id = %s", (documento_id,))
                 cursor.execute("DELETE FROM documento WHERE id = %s", (documento_id,))
@@ -204,12 +209,22 @@ def delete_documento(documento_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao apagar documento: {str(e)}")
 
 @router.delete("/comentario/{comentario_id}")
-def delete_comentario(comentario_id: int):
+def delete_comentario(comentario_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
+                # Verifique o dono do comentário
+                cursor.execute("SELECT usuario_id FROM comentario WHERE id = %s", (comentario_id,))
+                comentario = cursor.fetchone()
+                if not comentario:
+                    raise HTTPException(status_code=404, detail="Comentário não encontrado")
+                    
+                if comentario[0] != user_id:
+                    raise HTTPException(status_code=403, detail="Você não tem permissão para apagar este comentário")
+
                 cursor.execute("DELETE FROM comentario WHERE id = %s", (comentario_id,))
                 conn.commit()
                 return {"message": "Comentário apagado com sucesso"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao apagar comentário: {str(e)}")

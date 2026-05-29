@@ -1,25 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from psycopg2.extras import RealDictCursor
 import jwt
 from datetime import datetime, timedelta, timezone
 from api_types import CreateUser, Login
 from bdd import get_db
+from API.tests.auth import get_current_user_id, SECRET_KEY, ALGORITHM
 
-SECRET_KEY = "my_super_secret_project_key_uff"
-ALGORITHM = "HS256"
-
-security = HTTPBearer()
-
-def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        return int(user_id)
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 router = APIRouter(tags=["Users"])
 

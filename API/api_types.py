@@ -40,12 +40,10 @@ class CreateDocumento(BaseModel):
     disciplina_id: int
     semestro_id: int
     tipo: str
-    publicador_id: int
 
 class CreateComentario(BaseModel):
     documento_id: int
     texto: str
-    usuario_id: int
     replies_to_id: int | None = None
 
 class Votes(Enum):
@@ -55,5 +53,4 @@ class Votes(Enum):
 
 class CreateVoto(BaseModel):
     documento_id: int
-    valor: Votes
-    usuario_id: int 
+    valor: Votes 
