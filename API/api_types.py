@@ -4,7 +4,7 @@ from enum import Enum
 class CreateUser(BaseModel):
     nome: str
     email: str
-    tier: str
+    password: str
 
 class Login(BaseModel):
     email: str

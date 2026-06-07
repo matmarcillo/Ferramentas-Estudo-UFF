@@ -4,7 +4,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from api_types import CreateUser, Login
 from bdd import get_db
-from API.tests.auth import get_current_user_id, SECRET_KEY, ALGORITHM
+from auth import get_current_user_id, SECRET_KEY, ALGORITHM
 
 
 router = APIRouter(tags=["Users"])
@@ -20,7 +20,7 @@ def create_user(req: CreateUser):
 
                 cursor.execute(
                     'INSERT INTO usuarios (nome, email, tier) VALUES (%s, %s, %s) RETURNING id',
-                    (req.nome, req.email, req.tier)
+                    (req.nome, req.email, 0)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()

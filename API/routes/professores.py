@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from psycopg2.extras import RealDictCursor
 from api_types import CreateProfessor
 from bdd import get_db
@@ -35,32 +35,79 @@ def get_professors():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching professors: {str(e)}")
 
-@router.get("/professor/{professor_id}")
-def get_professor(professor_id: int):
+
+@router.get("/professors/search")
+def search_professors(name: str = Query(..., min_length=1)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute('SELECT id, nome, email, departamento FROM professor WHERE id = %s', (professor_id,))
-                prof = cursor.fetchone()
-                if not prof:
+                cursor.execute(
+                    'SELECT id, nome, departamento FROM professor WHERE nome ILIKE %s ORDER BY nome ASC',
+                    (f"%{name}%",)
+                )
+                return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error searching professors: {str(e)}")
+
+
+@router.get("/professor/by-name")
+def get_professor_by_name(name: str = Query(..., min_length=1)):
+    try:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    'SELECT id, nome, email, departamento FROM professor WHERE nome ILIKE %s ORDER BY nome ASC',
+                    (f"%{name}%",)
+                )
+                professors = cursor.fetchall()
+                if not professors:
                     raise HTTPException(status_code=404, detail="Professor not found")
-                return prof
+                return {"query": name, "professors": professors}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching professor by name: {str(e)}")
+
+
+@router.get("/professor/{professor_name}")
+def get_professor(professor_name: str):
+    try:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    'SELECT id, nome, email, departamento FROM professor WHERE lower(nome) = lower(%s)',
+                    (professor_name,)
+                )
+                professor = cursor.fetchone()
+                if not professor:
+                    raise HTTPException(status_code=404, detail="Professor not found")
+                return professor
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching professor: {str(e)}")
 
-@router.get("/professor/{professor_id}/avaliacoes")
-def get_professor_reviews(professor_id: int):
+
+@router.get("/professor/{professor_name}/avaliacoes")
+def get_professor_reviews(professor_name: str):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    'SELECT id FROM professor WHERE lower(nome) = lower(%s)',
+                    (professor_name,)
+                )
+                professor = cursor.fetchone()
+                if not professor:
+                    raise HTTPException(status_code=404, detail="Professor not found")
+
                 cursor.execute('''
-                    SELECT av.id, av.estudante_id, av.semestro_id, 
+                    SELECT av.id, av.estudante_id, av.semestro_id,
                            av.metrica_1, av.metrica_2, av.metrica_3
-                    FROM avaliacao_professor av 
+                    FROM avaliacao_professor av
                     WHERE av.professor_id = %s
-                ''', (professor_id,))
-                return cursor.fetchall()
+                ''', (professor['id'],))
+                reviews = cursor.fetchall()
+                return {"professor_name": professor_name, "professor_id": professor['id'], "reviews": reviews}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching professor reviews: {str(e)}")
