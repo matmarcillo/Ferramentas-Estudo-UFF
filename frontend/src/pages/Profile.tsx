@@ -1,34 +1,122 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
+import { User, Mail, Award, FileText, Zap, ChevronRight } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/users/me').then(res => setUser(res.data)).catch(() => {
+    api.get('/users/me').then(res => {
+      setUser(res.data);
+      setLoading(false);
+    }).catch(() => {
       localStorage.removeItem('token');
       window.location.href = '/login';
     });
   }, []);
 
-  if (!user) return <div>Carregando...</div>;
+  if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Carregando perfil...</div>;
+
+  const nextTierExp = (Math.floor(user.exp / 100) + 1) * 100;
+  const progress = (user.exp % 100);
 
   return (
-    <div>
-      <h1>Meu Perfil</h1>
-      <div className="card">
-        <p>Nome: {user.nome}</p>
-        <p>Email: {user.email}</p>
-        <p>Tier: {user.tier}</p>
-        <p>Exp: {user.exp}</p>
+    <div style={{ padding: '2rem 0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+        {/* User Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div className="card" style={{ textAlign: 'center' }}>
+            <div style={{ 
+              width: '100px', 
+              height: '100px', 
+              borderRadius: '50%', 
+              background: 'var(--primary)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+              border: '4px solid var(--border)'
+            }}>
+              <User size={48} color="white" />
+            </div>
+            <h2 style={{ marginBottom: '0.25rem' }}>{user.nome}</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <Mail size={14} /> {user.email}
+            </p>
+            
+            <div style={{ textAlign: 'left', background: 'var(--bg-dark)', padding: '1rem', borderRadius: 'var(--radius)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{user.tier}</span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{user.exp} XP</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent)', borderRadius: '4px' }} />
+              </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                {nextTierExp - user.exp} XP para o próximo nível
+              </p>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3>Conquistas</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span className="badge badge-primary"><Award size={12} /> Contribuidor</span>
+              <span className="badge badge-accent"><Zap size={12} /> Veterano</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div className="card">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <FileText size={24} style={{ color: 'var(--primary)' }} />
+              Meus Documentos
+            </h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              Documentos e materiais de estudo que você compartilhou com a comunidade.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {user.documentos.length > 0 ? user.documentos.map((d: any) => (
+                <div key={d.id} className="document-item">
+                  <div style={{ background: 'var(--bg-dark)', padding: '0.75rem', borderRadius: '8px' }}>
+                    <FileText size={20} color="var(--primary)" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600' }}>{d.nome}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{d.tipo}</div>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-muted)" />
+                </div>
+              )) : (
+                <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', color: 'var(--text-muted)' }}>
+                  Você ainda não enviou nenhum documento.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <h2>Meus Documentos</h2>
-      {user.documentos.map((d: any) => (
-        <div key={d.id} className="card">
-          <p>{d.nome} ({d.tipo})</p>
-        </div>
-      ))}
+      <style>{`
+        .document-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: var(--radius);
+          border: 1px solid var(--border);
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+        .document-item:hover {
+          background: rgba(139, 92, 246, 0.05);
+          border-color: var(--primary);
+        }
+      `}</style>
     </div>
   );
 }
