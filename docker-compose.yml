@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:latest
-    container_name: db-aulas
+    container_name: db-game-analytics
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -9,4 +9,29 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the file
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./API
+    container_name: api-game-analytics
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/mydb
+      # JWT_SECRET: your_secret_here
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-game-analytics
+    ports:
+      - "80:80"
+    depends_on:
+      - api
