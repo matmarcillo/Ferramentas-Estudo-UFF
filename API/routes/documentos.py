@@ -7,7 +7,7 @@ import shutil
 import uuid
 from api_types import *
 from bdd import get_db
-from API.tests.auth import get_current_user_id
+from auth import get_current_user_id
 
 VOTE_VALUE = 0.05
 
@@ -55,7 +55,7 @@ def create_documento(
         raise HTTPException(status_code=500, detail=f"Erro ao criar documento: {str(e)}")
 
 @router.get("/{disciplina_id}/documentos/{documento_id}/download")
-def download_documento(documento_id: int):
+def download_documento(disciplina_id: int, documento_id: int):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -124,7 +124,7 @@ def get_documento(disciplina_id: int, documento_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documento: {str(e)}")
     
 @router.post("/{disciplina_id}/documentos/{documento_id}/comentario")
-def create_comentario(comentario: CreateComentario, user_id: int = Depends(get_current_user_id)):
+def create_comentario(disciplina_id: int, documento_id: int, comentario: CreateComentario, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -139,7 +139,7 @@ def create_comentario(comentario: CreateComentario, user_id: int = Depends(get_c
         raise HTTPException(status_code=500, detail=f"Erro ao criar comentário: {str(e)}")
 
 @router.post("/{disciplina_id}/documentos/{documento_id}/voto")
-def create_voto(voto: CreateVoto, user_id: int = Depends(get_current_user_id)):
+def create_voto(disciplina_id: int, documento_id: int, voto: CreateVoto, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:

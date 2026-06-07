@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from psycopg2.extras import RealDictCursor
 from api_types import *
 from bdd import get_db
-from API.tests.auth import get_current_user_id
+from auth import get_current_user_id
 
 router = APIRouter(tags=["Avaliação"])
 
