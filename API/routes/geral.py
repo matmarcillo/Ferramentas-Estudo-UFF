@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header, Depends
+from psycopg2.extras import RealDictCursor
 from api_types import CreateSemester
 from bdd import get_db
 from auth import get_current_admin
@@ -47,6 +48,17 @@ def get_tables():
                 return {"tables": tables}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching tables: {str(e)}")
+
+
+@router.get("/semesters")
+def get_semesters():
+    try:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute("SELECT id, ano, periodo FROM semestro ORDER BY ano DESC, periodo DESC")
+                return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching semesters: {str(e)}")
 
 
 @router.post("/semester")
