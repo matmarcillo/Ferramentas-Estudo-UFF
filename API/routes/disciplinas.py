@@ -129,7 +129,7 @@ def get_course_reviews(course_name: str):
                 cursor.execute('''
                     SELECT av.id, av.estudante_id, av.semestro_id, av.professor_id,
                         av.metrica_1, av.metrica_2, av.metrica_3,
-                        av.comentario
+                        av.status_aprovacao, av.comentario
                     FROM avaliacao_disciplina av
                     LEFT JOIN professor p ON av.professor_id = p.id
                     WHERE av.disciplina_id = %s
