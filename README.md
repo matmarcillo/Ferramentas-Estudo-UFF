@@ -50,16 +50,24 @@ Eu (Mateo) não conheço nada de Frontend. Mas a ideia é criar uma interface we
 
 ## Lançamento
 
-Agora na fase atual:
+### Entorno de produção
+
+```bash
+docker compose up --build
+```
+
+### Entorno de test
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate  # Windows
 pip install -r requirements.txt
-```
 
-```bash
-docker compose up 
+docker compose up db -d
+
 python API/main.py
+
+cd frontend && npm install
+npm run dev
 ```
