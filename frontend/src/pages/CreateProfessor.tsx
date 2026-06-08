@@ -15,13 +15,22 @@ export default function CreateProfessor() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h1>Cadastrar Professor</h1>
-      <form onSubmit={handleSubmit}>
-        <input placeholder="Nome" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} />
-        <input placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-        <input placeholder="Departamento" value={form.departamento} onChange={e => setForm({...form, departamento: e.target.value})} />
-        <button type="submit">Cadastrar</button>
+      <form onSubmit={handleSubmit} className="card" style={{ padding: '2rem' }}>
+        <div className="form-group">
+          <label>Nome</label>
+          <input placeholder="Nome" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} required />
+        </div>
+        <div className="form-group">
+          <label>Email</label>
+          <input placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required />
+        </div>
+        <div className="form-group">
+          <label>Departamento</label>
+          <input placeholder="Departamento" value={form.departamento} onChange={e => setForm({...form, departamento: e.target.value})} required />
+        </div>
+        <button type="submit" className="primary">Cadastrar</button>
       </form>
     </div>
   );

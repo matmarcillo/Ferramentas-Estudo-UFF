@@ -34,10 +34,12 @@ CREATE TABLE IF NOT EXISTS avaliacao_disciplina (
     estudante_id INTEGER NOT NULL REFERENCES usuarios (id),
     disciplina_id INTEGER NOT NULL REFERENCES disciplina (id),
     semestro_id INTEGER NOT NULL REFERENCES semestro (id),
-    professor_id INTEGER NOT NULL REFERENCES professor (id),
+    professor_id INTEGER REFERENCES professor (id), -- Now optional
     metrica_1 SMALLINT NOT NULL CHECK (metrica_1 BETWEEN 1 AND 5),
     metrica_2 SMALLINT NOT NULL CHECK (metrica_2 BETWEEN 1 AND 5),
-    metrica_3 SMALLINT NOT NULL CHECK (metrica_3 BETWEEN 1 AND 5)
+    metrica_3 SMALLINT NOT NULL CHECK (metrica_3 BETWEEN 1 AND 5),
+    status_aprovacao VARCHAR(20) NOT NULL,
+    comentario TEXT -- Added comentario
 );
 
 CREATE TABLE IF NOT EXISTS avaliacao_professor (
@@ -47,7 +49,8 @@ CREATE TABLE IF NOT EXISTS avaliacao_professor (
     semestro_id INTEGER NOT NULL REFERENCES semestro (id),
     metrica_1 SMALLINT NOT NULL CHECK (metrica_1 BETWEEN 1 AND 5),
     metrica_2 SMALLINT NOT NULL CHECK (metrica_2 BETWEEN 1 AND 5),
-    metrica_3 SMALLINT NOT NULL CHECK (metrica_3 BETWEEN 1 AND 5)
+    metrica_3 SMALLINT NOT NULL CHECK (metrica_3 BETWEEN 1 AND 5),
+    comentario TEXT -- Added comentario
 );
 
 CREATE TABLE IF NOT EXISTS documento (

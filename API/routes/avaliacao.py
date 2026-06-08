@@ -12,15 +12,15 @@ def create_avaliacao(req: CreateAvaliacao, user_id: int = Depends(get_current_us
         with get_db() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO avaliacao_disciplina (estudante_id, disciplina_id, semestro_id, professor_id, metrica_1, metrica_2, metrica_3) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (user_id, req.disciplina_id, req.semestre_id, 1, 5, 5, 5) # Temporário, adapte as métricas para o formato real do body se necessário
+                    "INSERT INTO avaliacao_disciplina (estudante_id, disciplina_id, semestro_id, professor_id, metrica_1, metrica_2, metrica_3, status_aprovacao, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (user_id, req.disciplina_id, req.semestre_id, req.professor_id, req.metrica_1, req.metrica_2, req.metrica_3, req.status_aprovacao.value, req.comentario)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Avaliação de disciplina criada com sucesso"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar avaliação de disciplina: {str(e)}")
-    
+
 
 @router.post("/avaliacao/professor")
 def create_avaliacao_professor(req: CreateAvaliacaoProfessor, user_id: int = Depends(get_current_user_id)):
@@ -28,8 +28,8 @@ def create_avaliacao_professor(req: CreateAvaliacaoProfessor, user_id: int = Dep
         with get_db() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO avaliacao_professor (estudante_id, professor_id, semestro_id, metrica_1, metrica_2, metrica_3) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                    (user_id, req.professor_id, req.semestre_id, 5, 5, 5) # Temporário, adapte as métricas para o formato real do body se necessário
+                    "INSERT INTO avaliacao_professor (estudante_id, professor_id, semestro_id, metrica_1, metrica_2, metrica_3, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (user_id, req.professor_id, req.semestre_id, req.metrica_1, req.metrica_2, req.metrica_3, req.comentario)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()

@@ -122,7 +122,8 @@ def get_professor_reviews(professor_name: str):
 
                 cursor.execute('''
                     SELECT av.id, av.estudante_id, av.semestro_id,
-                           av.metrica_1, av.metrica_2, av.metrica_3
+                           av.metrica_1, av.metrica_2, av.metrica_3,
+                           av.comentario
                     FROM avaliacao_professor av
                     WHERE av.professor_id = %s
                 ''', (professor['id'],))

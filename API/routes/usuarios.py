@@ -69,11 +69,11 @@ def get_me(user_id: int = Depends(get_current_user_id)):
                 user['documentos'] = cursor.fetchall()
                 
                 # Fetch recent evaluations (disciplina)
-                cursor.execute('SELECT id, disciplina_id, semestro_id, metrica_1, metrica_2, metrica_3 FROM avaliacao_disciplina WHERE estudante_id = %s ORDER BY id DESC', (user_id,))
+                cursor.execute('SELECT id, disciplina_id, semestro_id, metrica_1, metrica_2, metrica_3, status_aprovacao, comentario FROM avaliacao_disciplina WHERE estudante_id = %s ORDER BY id DESC', (user_id,))
                 user['avaliacoes_disciplina'] = cursor.fetchall()
                 
                 # Fetch recent evaluations (professor)
-                cursor.execute('SELECT id, professor_id, semestro_id, metrica_1, metrica_2, metrica_3 FROM avaliacao_professor WHERE estudante_id = %s ORDER BY id DESC', (user_id,))
+                cursor.execute('SELECT id, professor_id, semestro_id, metrica_1, metrica_2, metrica_3, comentario FROM avaliacao_professor WHERE estudante_id = %s ORDER BY id DESC', (user_id,))
                 user['avaliacoes_professor'] = cursor.fetchall()
                 
                 return user

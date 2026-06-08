@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+from metricas_avaliacao import *
 
 class CreateUser(BaseModel):
     nome: str
@@ -27,18 +28,24 @@ class CreateProfessor(BaseModel):
 class CreateAvaliacao(BaseModel):
     disciplina_id: int
     semestre_id: int
-    nota: float
+    professor_id: int | None = None
+    metrica_1: int
+    metrica_2: int
+    metrica_3: int
+    status_aprovacao: Aprovacao
     comentario: str
 
 class CreateAvaliacaoProfessor(BaseModel):
     professor_id: int
     semestre_id: int
-    nota: float
+    metrica_1: int
+    metrica_2: int
+    metrica_3: int
     comentario: str
 
 class CreateDocumento(BaseModel):
     disciplina_id: int
-    semestro_id: int
+    semestre_id: int
     tipo: str
 
 class CreateComentario(BaseModel):

@@ -1,0 +1,4 @@
+*
+!.gitignore
+# Ignores any documents, but not the .gitignore file itself. This is to prevent accidentally committing any documents to the repository.
+# Also ensures folder exists for code purposes.
