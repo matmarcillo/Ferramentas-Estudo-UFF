@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUser } from '../hooks/useUser';
+import { Trash2 } from 'lucide-react';
 
 export default function Disciplina() {
   const { name } = useParams();
+  const navigate = useNavigate();
+  const { isAdmin } = useUser();
   const [course, setCourse] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
 
@@ -21,11 +25,29 @@ export default function Disciplina() {
     fetchData();
   }, [name]);
 
+  const handleDelete = async () => {
+    if (!window.confirm("Apagar esta disciplina?")) return;
+    try {
+      await api.delete(`/course/${course.id}`);
+      alert("Disciplina apagada");
+      navigate('/search-disciplina');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || "Erro ao apagar");
+    }
+  };
+
   if (!course) return <div>Carregando...</div>;
 
   return (
     <div>
-      <h1>{course.nome}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>{course.nome}</h1>
+        {isAdmin && (
+          <button onClick={handleDelete} className="secondary" style={{ color: 'var(--error)', borderColor: 'var(--error)' }}>
+            <Trash2 size={18} /> Apagar Disciplina
+          </button>
+        )}
+      </div>
       <p>Código: {course.codigo} | Faculdade: {course.faculdade}</p>
       
       <Link to={`/disciplina/${name}/documentos`} style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>

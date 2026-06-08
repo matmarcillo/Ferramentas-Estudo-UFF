@@ -209,7 +209,7 @@ def delete_documento(documento_id: int, user_id: int = Depends(get_current_user_
         raise HTTPException(status_code=500, detail=f"Erro ao apagar documento: {str(e)}")
 
 @router.delete("/comentario/{comentario_id}")
-def delete_comentario(comentario_id: int, user_id: int = Depends(get_current_user_id)):
+def delete_comentario(comentario_id: int, current_user: dict = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -219,7 +219,8 @@ def delete_comentario(comentario_id: int, user_id: int = Depends(get_current_use
                 if not comentario:
                     raise HTTPException(status_code=404, detail="Comentário não encontrado")
                     
-                if comentario[0] != user_id:
+                # Check if user is owner OR admin
+                if comentario[0] != current_user["id"] and current_user["role"] != "admin":
                     raise HTTPException(status_code=403, detail="Você não tem permissão para apagar este comentário")
 
                 cursor.execute("DELETE FROM comentario WHERE id = %s", (comentario_id,))

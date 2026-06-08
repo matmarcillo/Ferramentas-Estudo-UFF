@@ -1,13 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from psycopg2.extras import RealDictCursor
 from api_types import CreateCourse
 from bdd import get_db
+from auth import get_current_admin, get_current_user_id
 
 
 router = APIRouter(tags=["Courses"])
 
 @router.post("/course")
-def create_course(req: CreateCourse):
+def create_course(req: CreateCourse, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -24,6 +25,30 @@ def create_course(req: CreateCourse):
                 return {"id": new_id, "message": "Course created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating course: {str(e)}")
+
+@router.delete("/course/{course_id}")
+def delete_course(course_id: int, admin_id: int = Depends(get_current_admin)):
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check for dependent records
+                cursor.execute("SELECT id FROM documento WHERE disciplina_id = %s", (course_id,))
+                if cursor.fetchone():
+                    raise HTTPException(status_code=400, detail="Cannot delete course with associated documents")
+
+                cursor.execute("SELECT id FROM avaliacao_disciplina WHERE disciplina_id = %s", (course_id,))
+                if cursor.fetchone():
+                    raise HTTPException(status_code=400, detail="Cannot delete course with associated evaluations")
+
+                cursor.execute("DELETE FROM disciplina WHERE id = %s", (course_id,))
+                conn.commit()
+                return {"message": "Course deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting course: {str(e)}")
+
+@router.get("/courses")
 
 @router.get("/courses")
 def get_courses():

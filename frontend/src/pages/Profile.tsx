@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { User, Mail, Award, FileText, Zap, ChevronRight } from 'lucide-react';
+import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2 } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchProfile = () => {
     api.get('/users/me').then(res => {
       setUser(res.data);
       setLoading(false);
@@ -14,7 +14,22 @@ export default function Profile() {
       localStorage.removeItem('token');
       window.location.href = '/login';
     });
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, []);
+
+  const handleDeleteDoc = async (e: React.MouseEvent, docId: number) => {
+    e.stopPropagation();
+    if (!window.confirm("Deseja apagar este documento?")) return;
+    try {
+      await api.delete(`/documento/${docId}`);
+      fetchProfile();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || "Erro ao apagar");
+    }
+  };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Carregando perfil...</div>;
 
@@ -89,6 +104,13 @@ export default function Profile() {
                     <div style={{ fontWeight: '600' }}>{d.nome}</div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{d.tipo}</div>
                   </div>
+                  <button 
+                    onClick={(e) => handleDeleteDoc(e, d.id)}
+                    className="secondary"
+                    style={{ padding: '0.5rem', color: 'var(--error)', borderColor: 'transparent', background: 'transparent' }}
+                  >
+                    <Trash2 size={18} />
+                  </button>
                   <ChevronRight size={18} color="var(--text-muted)" />
                 </div>
               )) : (

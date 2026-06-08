@@ -19,8 +19,8 @@ def create_user(req: CreateUser):
                     raise HTTPException(status_code=400, detail="Email already in use")
 
                 cursor.execute(
-                    'INSERT INTO usuarios (nome, email, tier) VALUES (%s, %s, %s) RETURNING id',
-                    (req.nome, req.email, 0)
+                    "INSERT INTO usuarios (nome, email, exp, user_role) VALUES (%s, %s, %s, %s) RETURNING id",
+                    (req.nome, req.email, 0, 'student')
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()
@@ -36,7 +36,7 @@ def login(login_req: Login):
             with conn.cursor() as cursor:
                 # We skip real password checks here since DB doesn't have passwords for this school project.
                 # Just verifying if email exists.
-                cursor.execute('SELECT id, nome FROM usuarios WHERE email = %s', (login_req.email,))
+                cursor.execute('SELECT id, nome, user_role FROM usuarios WHERE email = %s', (login_req.email,))
                 user = cursor.fetchone()
                 
                 if user is None:
@@ -44,10 +44,10 @@ def login(login_req: Login):
                 
                 # Create JWT Token
                 expire = datetime.now(timezone.utc) + timedelta(days=7)
-                token_data = {"sub": str(user[0]), "exp": expire}
+                token_data = {"sub": str(user[0]), "role": user[2], "exp": expire}
                 token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
                 
-                return {"access_token": token, "token_type": "bearer", "user_id": user[0], "nome": user[1]}
+                return {"access_token": token, "token_type": "bearer", "user_id": user[0], "nome": user[1], "role": user[2]}
     except HTTPException:
         raise
     except Exception as e:
@@ -59,7 +59,7 @@ def get_me(user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute('SELECT id, nome, email, tier, exp FROM usuarios WHERE id = %s', (user_id,))
+                cursor.execute('SELECT id, nome, email, user_role, exp FROM usuarios WHERE id = %s', (user_id,))
                 user = cursor.fetchone()
                 if not user:
                     raise HTTPException(status_code=404, detail="User not found")
@@ -87,7 +87,7 @@ def get_leaderboard():
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
-                cursor.execute('SELECT id, nome, tier, exp FROM usuarios ORDER BY exp DESC LIMIT 50')
+                cursor.execute('SELECT id, nome, exp FROM usuarios ORDER BY exp DESC LIMIT 50')
                 return cursor.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching leaderboard: {str(e)}")

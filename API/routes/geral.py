@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from api_types import CreateSemester
 from bdd import get_db
+from auth import get_current_admin
 
 router = APIRouter(tags=["General"])
 
@@ -14,7 +15,7 @@ def status():
     return "API is running"
 
 @router.delete("/all")
-def delete_all():
+def delete_all(admin_id: int = Depends(get_current_admin)):
     with get_db() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM avaliacao_disciplina")
@@ -49,10 +50,7 @@ def get_tables():
 
 
 @router.post("/semester")
-def create_semester(req: CreateSemester, is_admin: bool = Header(False, description="Set to true to mimic admin validation")):
-    if not is_admin:
-        raise HTTPException(status_code=403, detail="Admin permissions required to create a semester")
-
+def create_semester(req: CreateSemester, admin_id: int = Depends(get_current_admin)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:

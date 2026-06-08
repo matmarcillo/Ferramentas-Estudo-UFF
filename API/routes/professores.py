@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from psycopg2.extras import RealDictCursor
 from api_types import CreateProfessor
 from bdd import get_db
+from auth import get_current_admin, get_current_user_id
 
 router = APIRouter(tags=["Professors"])
 
 @router.post("/professor")
-def create_professor(req: CreateProfessor):
+def create_professor(req: CreateProfessor, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -24,6 +25,24 @@ def create_professor(req: CreateProfessor):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating professor: {str(e)}")
+
+@router.delete("/professor/{professor_id}")
+def delete_professor(professor_id: int, admin_id: int = Depends(get_current_admin)):
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check for dependent records (evaluations)
+                cursor.execute("SELECT id FROM avaliacao_professor WHERE professor_id = %s", (professor_id,))
+                if cursor.fetchone():
+                    raise HTTPException(status_code=400, detail="Cannot delete professor with associated evaluations")
+
+                cursor.execute("DELETE FROM professor WHERE id = %s", (professor_id,))
+                conn.commit()
+                return {"message": "Professor deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting professor: {str(e)}")
 
 @router.get("/professors")
 def get_professors():

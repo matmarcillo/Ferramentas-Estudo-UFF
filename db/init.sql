@@ -2,9 +2,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    tier VARCHAR(50) NOT NULL,
-    exp  DECIMAL NOT NULL DEFAULT 0
+    exp  DECIMAL NOT NULL DEFAULT 0,
+    user_role VARCHAR(50) NOT NULL
 );
+
+INSERT INTO usuarios (nome, email, exp, user_role) VALUES
+('Mateo', 'mateo@uff.br', 0, 'admin'); -- on rajoute un admin à la création des tables
 
 CREATE TABLE IF NOT EXISTS professor (
     id SERIAL PRIMARY KEY,
@@ -15,7 +18,7 @@ CREATE TABLE IF NOT EXISTS professor (
 
 CREATE TABLE IF NOT EXISTS disciplina (
     id SERIAL PRIMARY KEY,
-    nome VARCHAR(120) NOT NULL,
+    nome VARCHAR(120) NOT NULL UNIQUE,
     codigo VARCHAR(50) NOT NULL UNIQUE,
     faculdade VARCHAR(120) NOT NULL
 );
