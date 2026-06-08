@@ -25,7 +25,9 @@ router = APIRouter(tags=["Documentos"])
 
 @router.post("/documento")
 def create_documento(
-    req: Annotated[CreateDocumento, Form()],
+    disciplina_id: int = Form(...),
+    semestre_id: int = Form(...),
+    tipo: str = Form(...),
     file: UploadFile = File(...),
     user_id: int = Depends(get_current_user_id)
 ):
@@ -46,7 +48,7 @@ def create_documento(
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO documento (disciplina_id, tipo, tier, semestro_id, publicador_id, link, nome) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (req.disciplina_id, req.tipo, tier_map[req.tipo], req.semestro_id, user_id, link, nome)
+                    (disciplina_id, tipo, tier_map[tipo], semestre_id, user_id, link, nome)
                 )
                 new_id = cursor.fetchone()[0]
                 conn.commit()
@@ -58,14 +60,14 @@ def create_documento(
 def download_documento(disciplina_id: int, documento_id: int):
     try:
         with get_db() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute("SELECT link, nome FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
                 
-                file_path = doc[0]
-                nome = doc[1]
+                file_path = doc['link']
+                nome = doc['nome']
                 
                 if not os.path.exists(file_path):
                     raise HTTPException(status_code=404, detail="Arquivo no servidor não foi encontrado")
@@ -75,12 +77,34 @@ def download_documento(disciplina_id: int, documento_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar o arquivo do documento: {str(e)}")
+
+@router.get("/{disciplina_id}/documentos/{documento_id}/view")
+def view_documento(disciplina_id: int, documento_id: int):
+    try:
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute("SELECT link, nome FROM documento WHERE id = %s", (documento_id,))
+                doc = cursor.fetchone()
+                if not doc:
+                    raise HTTPException(status_code=404, detail="Documento não encontrado")
+                
+                file_path = doc['link']
+                nome = doc['nome']
+                
+                if not os.path.exists(file_path):
+                    raise HTTPException(status_code=404, detail="Arquivo no servidor não foi encontrado")
+
+                return FileResponse(path=file_path, filename=nome, content_disposition_type="inline")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar o arquivo do documento: {str(e)}")
     
 @router.get("/{disciplina_id}/documentos")
 def get_documentos(disciplina_id: int):
     try:
         with get_db() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute('''
                     SELECT id, nome, link, semestro_id, tipo, tier, publicador_id 
                     FROM documento 
@@ -95,7 +119,7 @@ def get_documentos(disciplina_id: int):
 def get_documento(disciplina_id: int, documento_id: int):
     try:
         with get_db() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute('''
                     SELECT id, nome as titulo, link as url, semestro_id, tipo, tier, publicador_id 
                     FROM documento 
@@ -117,7 +141,8 @@ def get_documento(disciplina_id: int, documento_id: int):
                     FROM voto
                     WHERE documento_id = %s
                 ''', (documento_id,))
-                score = cursor.fetchone()[0] or 0
+                row = cursor.fetchone()
+                score = row['score'] if row and row['score'] else 0
 
                 return {"documento": documento, "comentarios": comentarios, "score": score}
     except Exception as e:

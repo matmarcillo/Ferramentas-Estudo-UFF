@@ -10,6 +10,7 @@ import Professor from './pages/Professor';
 import CreateProfessor from './pages/CreateProfessor';
 import CreateDisciplina from './pages/CreateDisciplina';
 import CreateSemester from './pages/CreateSemester';
+import PostDocument from './pages/PostDocument';
 import RateProfessor from './pages/RateProfessor';
 import RateDisciplina from './pages/RateDisciplina';
 import Leaderboard from './pages/Leaderboard';
@@ -41,6 +42,11 @@ function App() {
               <Trophy size={18} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
               Leaderboard
             </NavLink>
+            {isLoggedIn && (
+               <NavLink to="/post-document" className={({ isActive }) => isActive ? 'active' : ''}>
+                  Postar Documento
+               </NavLink>
+            )}
             {isAdmin && (
               <NavLink to="/create-semester" className={({ isActive }) => isActive ? 'active' : ''}>
                 <Settings size={18} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
@@ -79,6 +85,7 @@ function App() {
             <Route path="/create-professor" element={<CreateProfessor />} />
             <Route path="/create-disciplina" element={<CreateDisciplina />} />
             <Route path="/create-semester" element={<CreateSemester />} />
+            <Route path="/post-document" element={<PostDocument />} />
             <Route path="/rate-professor" element={<RateProfessor />} />
             <Route path="/rate-disciplina" element={<RateDisciplina />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
