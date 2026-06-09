@@ -15,6 +15,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   api:
     build: ./API
@@ -29,6 +30,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -37,3 +39,4 @@ services:
       - "80:80"
     depends_on:
       - api
+    restart: unless-stopped
