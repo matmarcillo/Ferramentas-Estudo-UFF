@@ -61,8 +61,8 @@ def search_professors(name: str = Query(..., min_length=1)):
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    'SELECT id, nome, departamento FROM professor WHERE nome ILIKE %s ORDER BY nome ASC',
-                    (f"%{name}%",)
+                    'SELECT id, nome, departamento FROM professor WHERE (nome ILIKE %s OR email ILIKE %s) ORDER BY nome ASC',
+                    (f"%{name}%", f"%{name}%")
                 )
                 return cursor.fetchall()
     except Exception as e:
@@ -75,8 +75,8 @@ def get_professor_by_name(name: str = Query(..., min_length=1)):
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    'SELECT id, nome, email, departamento FROM professor WHERE nome ILIKE %s ORDER BY nome ASC',
-                    (f"%{name}%",)
+                    'SELECT id, nome, email, departamento FROM professor WHERE (nome ILIKE %s OR email ILIKE %s) ORDER BY nome ASC',
+                    (f"%{name}%", f"%{name}%")
                 )
                 professors = cursor.fetchall()
                 if not professors:

@@ -4,7 +4,8 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from api_types import CreateUser, Login
 from bdd import get_db
-from auth import get_current_user_id, SECRET_KEY, ALGORITHM
+from auth import get_current_user_id, get_current_admin, SECRET_KEY, ALGORITHM
+from tier_system import get_tier_info, get_tier_below, get_next_tier_info
 
 
 router = APIRouter(tags=["Users"])
@@ -36,7 +37,7 @@ def login(login_req: Login):
             with conn.cursor() as cursor:
                 # We skip real password checks here since DB doesn't have passwords for this school project.
                 # Just verifying if email exists.
-                cursor.execute('SELECT id, nome, user_role FROM usuarios WHERE email = %s', (login_req.email,))
+                cursor.execute('SELECT id, nome, user_role, exp FROM usuarios WHERE email = %s', (login_req.email,))
                 user = cursor.fetchone()
                 
                 if user is None:
@@ -47,7 +48,17 @@ def login(login_req: Login):
                 token_data = {"sub": str(user[0]), "role": user[2], "exp": expire}
                 token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
                 
-                return {"access_token": token, "token_type": "bearer", "user_id": user[0], "nome": user[1], "role": user[2]}
+                tier_info = get_tier_info(user[3])
+                
+                return {
+                    "access_token": token, 
+                    "token_type": "bearer", 
+                    "user_id": user[0], 
+                    "nome": user[1], 
+                    "role": user[2],
+                    "exp": user[3],
+                    "tier": tier_info["name"]
+                }
     except HTTPException:
         raise
     except Exception as e:
@@ -64,6 +75,19 @@ def get_me(user_id: int = Depends(get_current_user_id)):
                 if not user:
                     raise HTTPException(status_code=404, detail="User not found")
                 
+                # Add tier info
+                tier_info = get_tier_info(user['exp'])
+                user['tier'] = tier_info['name']
+                user['tier_level'] = tier_info['level']
+                
+                next_tier = get_next_tier_info(user['exp'])
+                if next_tier:
+                    user['next_tier_name'] = next_tier['name']
+                    user['next_tier_threshold'] = next_tier['threshold']
+                else:
+                    user['next_tier_name'] = "Max"
+                    user['next_tier_threshold'] = user['exp']
+
                 # Fetch recent documents uploaded
                 cursor.execute('SELECT id, tipo, tier, nome, link FROM documento WHERE publicador_id = %s ORDER BY id DESC', (user_id,))
                 user['documentos'] = cursor.fetchall()
@@ -86,8 +110,34 @@ def get_me(user_id: int = Depends(get_current_user_id)):
 def get_leaderboard():
     try:
         with get_db() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute('SELECT id, nome, exp FROM usuarios ORDER BY exp DESC LIMIT 50')
-                return cursor.fetchall()
+                users = cursor.fetchall()
+                
+                # Add tier to each user
+                for user in users:
+                    user['tier'] = get_tier_info(user['exp'])['name']
+                
+                return users
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching leaderboard: {str(e)}")
+
+@router.post("/admin/reset-tiers")
+def reset_tiers(_ = Depends(get_current_admin)):
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                
+                cursor.execute("SELECT id, exp FROM usuarios")
+                users = cursor.fetchall()
+                
+                for u in users:
+                    new_exp = get_tier_below(u['exp'])
+                    cursor.execute("UPDATE usuarios SET exp = %s WHERE id = %s", (new_exp, u['id']))
+                
+                conn.commit()
+                return {"message": "Tiers resetados com sucesso para o novo semestre"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao resetar tiers: {str(e)}")

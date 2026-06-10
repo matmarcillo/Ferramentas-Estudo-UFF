@@ -67,8 +67,8 @@ def search_courses(name: str = Query(..., min_length=1)):
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    'SELECT id, nome, codigo, faculdade FROM disciplina WHERE nome ILIKE %s ORDER BY nome ASC',
-                    (f"%{name}%",)
+                    'SELECT id, nome, codigo, faculdade FROM disciplina WHERE (nome ILIKE %s OR codigo ILIKE %s) ORDER BY nome ASC',
+                    (f"%{name}%", f"%{name}%")
                 )
                 return cursor.fetchall()
     except Exception as e:
@@ -81,8 +81,8 @@ def get_course_by_name(name: str = Query(..., min_length=1)):
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    'SELECT id, nome, codigo, faculdade FROM disciplina WHERE nome ILIKE %s ORDER BY nome ASC',
-                    (f"%{name}%",)
+                    'SELECT id, nome, codigo, faculdade FROM disciplina WHERE (nome ILIKE %s OR codigo ILIKE %s) ORDER BY nome ASC',
+                    (f"%{name}%", f"%{name}%")
                 )
                 courses = cursor.fetchall()
                 if not courses:

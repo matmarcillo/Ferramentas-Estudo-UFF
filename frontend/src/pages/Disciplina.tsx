@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUser } from '../hooks/useUser';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Star, FileText } from 'lucide-react';
 
 export default function Disciplina() {
   const { name } = useParams();
@@ -87,10 +87,17 @@ export default function Disciplina() {
         </div>
       )}
 
-      <div style={{ marginBottom: '3rem' }}>
-        <Link to={`/disciplina/${name}/documentos`} className="primary" style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)', background: 'var(--primary)', color: 'white', display: 'inline-flex', alignItems: 'center' }}>
-          Ver Documentos da Disciplina
+      <div style={{ marginBottom: '3rem', display: 'flex', gap: '1rem' }}>
+        <Link to={`/disciplina/${name}/documentos`} className="primary" style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)', background: 'var(--primary)', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FileText size={18} /> Ver Documentos
         </Link>
+        <button 
+          onClick={() => navigate('/rate-disciplina', { state: { disciplinaId: course.id } })}
+          className="secondary" 
+          style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <Star size={18} /> Avaliar esta Disciplina
+        </button>
       </div>
 
       <h2>Avaliações dos Alunos ({reviews.length})</h2>

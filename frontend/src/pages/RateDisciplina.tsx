@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api';
 
 export default function RateDisciplina() {
+  const location = useLocation();
+  const preSelectedDisciplinaId = location.state?.disciplinaId?.toString() || '';
+
   const [courses, setCourses] = useState<any[]>([]);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [profs, setProfs] = useState<any[]>([]);
   const [form, setForm] = useState({ 
-    disciplina_id: '', 
+    disciplina_id: preSelectedDisciplinaId, 
     semestre_id: '', 
     professor_id: '', 
     metrica_1: 5, 
@@ -41,8 +45,8 @@ export default function RateDisciplina() {
         professor_id: form.professor_id ? parseInt(form.professor_id) : null
       });
       alert('Avaliação enviada!');
-    } catch (err) {
-      alert('Erro ao enviar avaliação');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }
   };
 

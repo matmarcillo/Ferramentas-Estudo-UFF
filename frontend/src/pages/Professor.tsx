@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUser } from '../hooks/useUser';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Star } from 'lucide-react';
 
 export default function Professor() {
   const { name } = useParams();
@@ -59,11 +59,20 @@ export default function Professor() {
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h1>{professor.nome}</h1>
-        {isAdmin && (
-          <button onClick={handleDelete} className="secondary" style={{ color: '#ef4444', borderColor: '#ef4444' }}>
-            <Trash2 size={18} /> Apagar Professor
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            onClick={() => navigate('/rate-professor', { state: { professorId: professor.id } })}
+            className="secondary" 
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Star size={18} /> Avaliar este Professor
           </button>
-        )}
+          {isAdmin && (
+            <button onClick={handleDelete} className="secondary" style={{ color: '#ef4444', borderColor: '#ef4444' }}>
+              <Trash2 size={18} /> Apagar Professor
+            </button>
+          )}
+        </div>
       </div>
       <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
         Email: <span style={{ color: 'var(--text-main)' }}>{professor.email}</span> | 

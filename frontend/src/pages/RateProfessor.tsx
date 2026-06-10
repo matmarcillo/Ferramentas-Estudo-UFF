@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api';
 
 export default function RateProfessor() {
+  const location = useLocation();
+  const preSelectedProfessorId = location.state?.professorId?.toString() || '';
+
   const [profs, setProfs] = useState<any[]>([]);
   const [semesters, setSemesters] = useState<any[]>([]);
   const [form, setForm] = useState({ 
-    professor_id: '', 
+    professor_id: preSelectedProfessorId, 
     semestre_id: '', 
     metrica_1: 5, 
     metrica_2: 5, 
@@ -36,8 +40,8 @@ export default function RateProfessor() {
         semestre_id: parseInt(form.semestre_id as string)
       });
       alert('Avaliação enviada!');
-    } catch (err) {
-      alert('Erro ao enviar avaliação');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }
   };
 
