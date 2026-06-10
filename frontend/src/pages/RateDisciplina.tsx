@@ -45,8 +45,8 @@ export default function RateDisciplina() {
         professor_id: form.professor_id ? parseInt(form.professor_id) : null
       });
       alert('Avaliação enviada!');
-    } catch (err) {
-      alert('Erro ao enviar avaliação');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }
   };
 

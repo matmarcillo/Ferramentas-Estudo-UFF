@@ -40,8 +40,8 @@ export default function RateProfessor() {
         semestre_id: parseInt(form.semestre_id as string)
       });
       alert('Avaliação enviada!');
-    } catch (err) {
-      alert('Erro ao enviar avaliação');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }
   };
 
