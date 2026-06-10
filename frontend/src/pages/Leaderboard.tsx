@@ -55,7 +55,7 @@ export default function Leaderboard() {
           </thead>
           <tbody>
             {users.map((u, i) => (
-              <tr key={u[0]} style={{ background: i < 3 ? 'rgba(139, 92, 246, 0.05)' : 'transparent' }}>
+              <tr key={u.id} style={{ background: i < 3 ? 'rgba(139, 92, 246, 0.05)' : 'transparent' }}>
                 <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                     {getRankIcon(i)}
@@ -63,13 +63,13 @@ export default function Leaderboard() {
                   </div>
                 </td>
                 <td>
-                  <div style={{ fontWeight: '600' }}>{u[1]}</div>
+                  <div style={{ fontWeight: '600' }}>{u.nome}</div>
                 </td>
-                <td>{getTierBadge(u[2])}</td>
+                <td>{getTierBadge(u.tier)}</td>
                 <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--accent)' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Zap size={14} />
-                    {parseFloat(u[3]).toFixed(0)} XP
+                    {parseFloat(u.exp).toFixed(0)} XP
                   </div>
                 </td>
               </tr>

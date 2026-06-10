@@ -8,18 +8,20 @@ import uuid
 from api_types import *
 from bdd import get_db
 from auth import get_current_user_id
+from tier_system import EXP_REWARDS, get_tier_info
 
-VOTE_VALUE = 0.05
-
-UPLOAD_DIR = "documentos"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-tier_map = {
+TIER_MAP = {
     "prova": 1,
     "trabalho": 2,
     "projeto": 3,
     "resumo": 4
 }
+
+VOTE_VALUE = 1 # 10 comentarios = uma avaliação de professsor
+# antes era 20*0.05 votos para um ponto, mas menos simples
+
+UPLOAD_DIR = "documentos"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 router = APIRouter(tags=["Documentos"])
 
@@ -48,24 +50,41 @@ def create_documento(
             with conn.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO documento (disciplina_id, tipo, tier, semestro_id, publicador_id, link, nome) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (disciplina_id, tipo, tier_map[tipo], semestre_id, user_id, link, nome)
+                    (disciplina_id, tipo, TIER_MAP[tipo], semestre_id, user_id, link, nome)
                 )
                 new_id = cursor.fetchone()[0]
+
+                # Award EXP based on type
+                exp_to_add = EXP_REWARDS["doc_resumo"] if tipo == "resumo" else EXP_REWARDS["doc_other"]
+                cursor.execute(
+                    "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
+                    (exp_to_add, user_id)
+                )
+
                 conn.commit()
                 return {"id": new_id, "message": "Documento criado com sucesso", "file_path": link}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar documento: {str(e)}")
 
 @router.get("/{disciplina_id}/documentos/{documento_id}/download")
-def download_documento(disciplina_id: int, documento_id: int):
+def download_documento(disciplina_id: int, documento_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("SELECT link, nome FROM documento WHERE id = %s", (documento_id,))
+                # Get user's tier level
+                cursor.execute("SELECT exp FROM usuarios WHERE id = %s", (user_id,))
+                user_row = cursor.fetchone()
+                user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
+
+                cursor.execute("SELECT link, nome, tier FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
                 
+                # Check tier restriction
+                if int(doc['tier']) > user_tier_level:
+                    raise HTTPException(status_code=403, detail="Você não tem nível de Tier suficiente para baixar este documento")
+
                 file_path = doc['link']
                 nome = doc['nome']
                 
@@ -79,15 +98,24 @@ def download_documento(disciplina_id: int, documento_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao buscar o arquivo do documento: {str(e)}")
 
 @router.get("/{disciplina_id}/documentos/{documento_id}/view")
-def view_documento(disciplina_id: int, documento_id: int):
+def view_documento(disciplina_id: int, documento_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("SELECT link, nome FROM documento WHERE id = %s", (documento_id,))
+                # Get user's tier level
+                cursor.execute("SELECT exp FROM usuarios WHERE id = %s", (user_id,))
+                user_row = cursor.fetchone()
+                user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
+
+                cursor.execute("SELECT link, nome, tier FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
                 
+                # Check tier restriction
+                if int(doc['tier']) > user_tier_level:
+                    raise HTTPException(status_code=403, detail="Você não tem nível de Tier suficiente para visualizar este documento")
+
                 file_path = doc['link']
                 nome = doc['nome']
                 
@@ -101,19 +129,25 @@ def view_documento(disciplina_id: int, documento_id: int):
         raise HTTPException(status_code=500, detail=f"Erro ao buscar o arquivo do documento: {str(e)}")
     
 @router.get("/{disciplina_id}/documentos")
-def get_documentos(disciplina_id: int):
+def get_documentos(disciplina_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                # Get user's tier level
+                cursor.execute("SELECT exp FROM usuarios WHERE id = %s", (user_id,))
+                user_row = cursor.fetchone()
+                user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
+
                 cursor.execute('''
                     SELECT id, nome, link, semestro_id, tipo, tier, publicador_id 
                     FROM documento 
-                    WHERE disciplina_id = %s
-                ''', (disciplina_id,))
+                    WHERE disciplina_id = %s AND (CAST(tier AS INTEGER) <= %s OR publicador_id = %s)
+                ''', (disciplina_id, user_tier_level, user_id))
                 documentos = cursor.fetchall()
                 return {"disciplina_id": disciplina_id, "documentos": documentos}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documentos: {str(e)}")
+
     
 @router.get("/{disciplina_id}/documentos/{documento_id}")
 def get_documento(disciplina_id: int, documento_id: int):

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2 } from 'lucide-react';
+import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2, RefreshCcw } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
@@ -31,10 +31,27 @@ export default function Profile() {
     }
   };
 
+  const handleResetTiers = async () => {
+    if (!window.confirm("Isso irá reduzir o tier de TODOS os usuários em um nível. Continuar?")) return;
+    try {
+      await api.post('/admin/reset-tiers');
+      alert("Tiers resetados com sucesso!");
+      fetchProfile();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || "Erro ao resetar");
+    }
+  };
+
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem' }}>Carregando perfil...</div>;
 
-  const nextTierExp = (Math.floor(user.exp / 100) + 1) * 100;
-  const progress = (user.exp % 100);
+  // Calculate progress based on thresholds from backend
+  const currentTierExp = user.exp;
+  const nextTierThreshold = user.next_tier_threshold;
+  const isMaxTier = user.next_tier_name === "Max";
+  
+  // To show meaningful progress, we should ideally know the start threshold of the current tier too
+  // But for now, we'll just show progress towards the next one.
+  const progress = isMaxTier ? 100 : Math.min(100, (currentTierExp / nextTierThreshold) * 100);
 
   return (
     <div style={{ padding: '2rem 0' }}>
@@ -68,10 +85,26 @@ export default function Profile() {
               <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${progress}%`, height: '100%', background: 'var(--accent)', borderRadius: '4px' }} />
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
-                {nextTierExp - user.exp} XP para o próximo nível
-              </p>
+              {!isMaxTier ? (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                  {nextTierThreshold - user.exp} XP para {user.next_tier_name}
+                </p>
+              ) : (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                  Nível máximo atingido!
+                </p>
+              )}
             </div>
+
+            {user.user_role === 'admin' && (
+              <button 
+                onClick={handleResetTiers}
+                className="secondary" 
+                style={{ marginTop: '1.5rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--error)' }}
+              >
+                <RefreshCcw size={16} /> Resetar Semestre
+              </button>
+            )}
           </div>
 
           <div className="card">
