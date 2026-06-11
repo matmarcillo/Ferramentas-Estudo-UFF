@@ -9,8 +9,8 @@ export default function CreateProfessor() {
     try {
       await api.post('/professor', form);
       alert('Professor cadastrado com sucesso!');
-    } catch (err) {
-      alert('Erro ao cadastrar professor');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao cadastrar professor');
     }
   };
 

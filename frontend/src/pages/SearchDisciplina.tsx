@@ -11,8 +11,8 @@ export default function SearchDisciplina() {
     try {
       const res = await api.get(`/courses/search?name=${query}`);
       setResults(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.response?.data?.detail || err);
     }
   };
 

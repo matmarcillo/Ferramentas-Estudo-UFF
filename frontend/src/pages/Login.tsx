@@ -20,8 +20,8 @@ export default function Login() {
         localStorage.setItem('token', res.data.access_token);
         window.location.href = '/';
       }
-    } catch (err) {
-      alert('Erro na operação. Verifique suas credenciais.');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro na operação. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }

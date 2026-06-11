@@ -11,8 +11,8 @@ export default function SearchProfessor() {
     try {
       const res = await api.get(`/professors/search?name=${query}`);
       setResults(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.response?.data?.detail || err);
     }
   };
 

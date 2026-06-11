@@ -16,8 +16,8 @@ export default function Documentos() {
         setCourseId(cRes.data.id);
         const dRes = await api.get(`/${cRes.data.id}/documentos`);
         setDocs(dRes.data.documentos);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error(err.response?.data?.detail || err);
       }
     };
     fetchData();

@@ -26,6 +26,8 @@ def create_user(req: CreateUser):
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "User created successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
@@ -119,6 +121,8 @@ def get_leaderboard():
                     user['tier'] = get_tier_info(user['exp'])['name']
                 
                 return users
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching leaderboard: {str(e)}")
 

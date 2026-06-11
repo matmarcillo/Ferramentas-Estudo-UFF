@@ -22,7 +22,8 @@ def create_professor(req: CreateProfessor, user_id: int = Depends(get_current_us
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Professor created successfully"}
-
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating professor: {str(e)}")
 
@@ -51,6 +52,8 @@ def get_professors():
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute('SELECT id, nome, departamento FROM professor ORDER BY nome ASC')
                 return cursor.fetchall()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching professors: {str(e)}")
 
@@ -65,6 +68,8 @@ def search_professors(name: str = Query(..., min_length=1)):
                     (f"%{name}%", f"%{name}%")
                 )
                 return cursor.fetchall()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching professors: {str(e)}")
 
@@ -129,5 +134,7 @@ def get_professor_reviews(professor_name: str):
                 ''', (professor['id'],))
                 reviews = cursor.fetchall()
                 return {"professor_name": professor_name, "professor_id": professor['id'], "reviews": reviews}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching professor reviews: {str(e)}")

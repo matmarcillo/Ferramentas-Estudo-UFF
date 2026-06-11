@@ -18,8 +18,8 @@ export default function Disciplina() {
         setCourse(cRes.data);
         const rRes = await api.get(`/course/${name}/avaliacoes`);
         setReviews(rRes.data.reviews);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error(err.response?.data?.detail || err);
       }
     };
     fetchData();

@@ -22,8 +22,8 @@ export default function Documento() {
       setDoc(dRes.data.documento);
       setComments(dRes.data.comentarios);
       setScore(dRes.data.score);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.response?.data?.detail || err);
     }
   };
 

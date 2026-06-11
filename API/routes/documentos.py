@@ -63,6 +63,8 @@ def create_documento(
 
                 conn.commit()
                 return {"id": new_id, "message": "Documento criado com sucesso", "file_path": link}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar documento: {str(e)}")
 
@@ -145,6 +147,8 @@ def get_documentos(disciplina_id: int, user_id: int = Depends(get_current_user_i
                 ''', (disciplina_id, user_tier_level, user_id))
                 documentos = cursor.fetchall()
                 return {"disciplina_id": disciplina_id, "documentos": documentos}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documentos: {str(e)}")
 
@@ -179,6 +183,8 @@ def get_documento(disciplina_id: int, documento_id: int):
                 score = row['score'] if row and row['score'] else 0
 
                 return {"documento": documento, "comentarios": comentarios, "score": score}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documento: {str(e)}")
     
@@ -194,6 +200,8 @@ def create_comentario(disciplina_id: int, documento_id: int, comentario: CreateC
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Comentário criado com sucesso"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar comentário: {str(e)}")
 
@@ -234,6 +242,8 @@ def create_voto(disciplina_id: int, documento_id: int, voto: CreateVoto, user_id
 
                 conn.commit()
                 return {"message": "Voto registrado com sucesso"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar voto: {str(e)}")
 
@@ -285,6 +295,7 @@ def delete_comentario(comentario_id: int, current_user: dict = Depends(get_curre
                 cursor.execute("DELETE FROM comentario WHERE id = %s", (comentario_id,))
                 conn.commit()
                 return {"message": "Comentário apagado com sucesso"}
-
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao apagar comentário: {str(e)}")
