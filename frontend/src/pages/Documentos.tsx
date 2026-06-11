@@ -16,8 +16,8 @@ export default function Documentos() {
         setCourseId(cRes.data.id);
         const dRes = await api.get(`/${cRes.data.id}/documentos`);
         setDocs(dRes.data.documentos);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        console.error(err.response?.data?.detail || err);
       }
     };
     fetchData();
@@ -51,7 +51,7 @@ export default function Documentos() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <a href={`/api/${courseId}/documentos/${d.id}/view`} target="_blank" rel="noreferrer" className="secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--text-main)' }}>
+                <a href={`/api/${courseId}/documentos/${d.id}/view?token=${localStorage.getItem('token')}`} target="_blank" rel="noreferrer" className="secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--text-main)' }}>
                   <ExternalLink size={16} /> Abrir
                 </a>
                 <Link to={`/disciplina/${name}/documentos/${d.id}`} className="primary" style={{ display: 'inline-flex', alignItems: 'center', padding: '0.5rem 1rem', borderRadius: 'var(--radius)', border: 'none', textDecoration: 'none', color: 'white', background: 'var(--primary)' }}>

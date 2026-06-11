@@ -22,8 +22,8 @@ export default function Documento() {
       setDoc(dRes.data.documento);
       setComments(dRes.data.comentarios);
       setScore(dRes.data.score);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.response?.data?.detail || err);
     }
   };
 
@@ -89,12 +89,12 @@ export default function Documento() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ margin: 0 }}>{doc.titulo}</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <a href={`/api/${courseId}/documentos/${docId}/view`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+          <a href={`/api/${courseId}/documentos/${docId}/view?token=${localStorage.getItem('token')}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
             <button className="secondary">
               <ExternalLink size={18} /> Abrir
             </button>
           </a>
-          <a href={`/api/${courseId}/documentos/${docId}/download`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+          <a href={`/api/${courseId}/documentos/${docId}/download?token=${localStorage.getItem('token')}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
             <button className="primary">
               <Download size={18} /> Download
             </button>

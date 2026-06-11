@@ -17,16 +17,21 @@ def status():
 
 @router.delete("/all")
 def delete_all(admin_id: int = Depends(get_current_admin)):
-    with get_db() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM avaliacao_disciplina")
-            cursor.execute("DELETE FROM documento")
-            cursor.execute("DELETE FROM professor")
-            cursor.execute("DELETE FROM semestro")
-            cursor.execute("DELETE FROM disciplina")
-            cursor.execute("DELETE FROM usuarios")
-        conn.commit()
-    return {"message": "All data deleted successfully"}
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM avaliacao_disciplina")
+                cursor.execute("DELETE FROM documento")
+                cursor.execute("DELETE FROM professor")
+                cursor.execute("DELETE FROM semestro")
+                cursor.execute("DELETE FROM disciplina")
+                cursor.execute("DELETE FROM usuarios")
+            conn.commit()
+        return {"message": "All data deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting all data: {str(e)}")
 
 @router.get("/db-status")
 def db_status():
@@ -35,6 +40,8 @@ def db_status():
             with conn.cursor() as cursor:
                 cursor.execute("SELECT 1")
         return {"status": "ok", "message": "Database connection is healthy"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
     
@@ -46,6 +53,8 @@ def get_tables():
                     cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
                     tables = [row[0] for row in cursor.fetchall()]
                 return {"tables": tables}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching tables: {str(e)}")
 
@@ -57,6 +66,8 @@ def get_semesters():
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute("SELECT id, ano, periodo FROM semestro ORDER BY ano DESC, periodo DESC")
                 return cursor.fetchall()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching semesters: {str(e)}")
 
@@ -73,5 +84,7 @@ def create_semester(req: CreateSemester, admin_id: int = Depends(get_current_adm
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Semester created successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating semester: {str(e)}")

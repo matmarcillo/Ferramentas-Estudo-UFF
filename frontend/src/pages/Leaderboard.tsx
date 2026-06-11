@@ -10,6 +10,9 @@ export default function Leaderboard() {
     api.get('/users/leaderboard').then(res => {
       setUsers(res.data);
       setLoading(false);
+    }).catch(err => {
+      console.error(err.response?.data?.detail || err);
+      setLoading(false);
     });
   }, []);
 

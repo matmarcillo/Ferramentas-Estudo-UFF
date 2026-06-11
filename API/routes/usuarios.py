@@ -26,6 +26,8 @@ def create_user(req: CreateUser):
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "User created successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
@@ -89,7 +91,13 @@ def get_me(user_id: int = Depends(get_current_user_id)):
                     user['next_tier_threshold'] = user['exp']
 
                 # Fetch recent documents uploaded
-                cursor.execute('SELECT id, tipo, tier, nome, link FROM documento WHERE publicador_id = %s ORDER BY id DESC', (user_id,))
+                cursor.execute('''
+                    SELECT d.id, d.tipo, d.tier, d.nome, d.link, d.disciplina_id, di.nome as disciplina_nome 
+                    FROM documento d
+                    JOIN disciplina di ON d.disciplina_id = di.id
+                    WHERE d.publicador_id = %s 
+                    ORDER BY d.id DESC
+                ''', (user_id,))
                 user['documentos'] = cursor.fetchall()
                 
                 # Fetch recent evaluations (disciplina)
@@ -119,6 +127,8 @@ def get_leaderboard():
                     user['tier'] = get_tier_info(user['exp'])['name']
                 
                 return users
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching leaderboard: {str(e)}")
 

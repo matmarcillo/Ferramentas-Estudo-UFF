@@ -7,7 +7,7 @@ import shutil
 import uuid
 from api_types import *
 from bdd import get_db
-from auth import get_current_user_id
+from auth import get_current_user_id, get_user_from_header_or_query
 from tier_system import EXP_REWARDS, get_tier_info
 
 TIER_MAP = {
@@ -63,12 +63,15 @@ def create_documento(
 
                 conn.commit()
                 return {"id": new_id, "message": "Documento criado com sucesso", "file_path": link}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar documento: {str(e)}")
 
 @router.get("/{disciplina_id}/documentos/{documento_id}/download")
-def download_documento(disciplina_id: int, documento_id: int, user_id: int = Depends(get_current_user_id)):
+def download_documento(disciplina_id: int, documento_id: int, user_info: dict = Depends(get_user_from_header_or_query)):
     try:
+        user_id = user_info["id"]
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 # Get user's tier level
@@ -76,13 +79,13 @@ def download_documento(disciplina_id: int, documento_id: int, user_id: int = Dep
                 user_row = cursor.fetchone()
                 user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
 
-                cursor.execute("SELECT link, nome, tier FROM documento WHERE id = %s", (documento_id,))
+                cursor.execute("SELECT link, nome, tier, publicador_id FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
                 
-                # Check tier restriction
-                if int(doc['tier']) > user_tier_level:
+                # Check tier restriction (bypass if uploader)
+                if int(doc['tier']) > user_tier_level and doc['publicador_id'] != user_id:
                     raise HTTPException(status_code=403, detail="Você não tem nível de Tier suficiente para baixar este documento")
 
                 file_path = doc['link']
@@ -98,8 +101,9 @@ def download_documento(disciplina_id: int, documento_id: int, user_id: int = Dep
         raise HTTPException(status_code=500, detail=f"Erro ao buscar o arquivo do documento: {str(e)}")
 
 @router.get("/{disciplina_id}/documentos/{documento_id}/view")
-def view_documento(disciplina_id: int, documento_id: int, user_id: int = Depends(get_current_user_id)):
+def view_documento(disciplina_id: int, documento_id: int, user_info: dict = Depends(get_user_from_header_or_query)):
     try:
+        user_id = user_info["id"]
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 # Get user's tier level
@@ -107,13 +111,13 @@ def view_documento(disciplina_id: int, documento_id: int, user_id: int = Depends
                 user_row = cursor.fetchone()
                 user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
 
-                cursor.execute("SELECT link, nome, tier FROM documento WHERE id = %s", (documento_id,))
+                cursor.execute("SELECT link, nome, tier, publicador_id FROM documento WHERE id = %s", (documento_id,))
                 doc = cursor.fetchone()
                 if not doc:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
                 
-                # Check tier restriction
-                if int(doc['tier']) > user_tier_level:
+                # Check tier restriction (bypass if uploader)
+                if int(doc['tier']) > user_tier_level and doc['publicador_id'] != user_id:
                     raise HTTPException(status_code=403, detail="Você não tem nível de Tier suficiente para visualizar este documento")
 
                 file_path = doc['link']
@@ -145,15 +149,22 @@ def get_documentos(disciplina_id: int, user_id: int = Depends(get_current_user_i
                 ''', (disciplina_id, user_tier_level, user_id))
                 documentos = cursor.fetchall()
                 return {"disciplina_id": disciplina_id, "documentos": documentos}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documentos: {str(e)}")
 
     
 @router.get("/{disciplina_id}/documentos/{documento_id}")
-def get_documento(disciplina_id: int, documento_id: int):
+def get_documento(disciplina_id: int, documento_id: int, user_id: int = Depends(get_current_user_id)):
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                # Get user's tier level
+                cursor.execute("SELECT exp FROM usuarios WHERE id = %s", (user_id,))
+                user_row = cursor.fetchone()
+                user_tier_level = get_tier_info(user_row['exp'] if user_row else 0)['level']
+
                 cursor.execute('''
                     SELECT id, nome as titulo, link as url, semestro_id, tipo, tier, publicador_id 
                     FROM documento 
@@ -162,6 +173,10 @@ def get_documento(disciplina_id: int, documento_id: int):
                 documento = cursor.fetchone()
                 if documento is None:
                     raise HTTPException(status_code=404, detail="Documento não encontrado")
+                
+                # Check tier restriction (bypass if uploader)
+                if int(documento['tier']) > user_tier_level and documento['publicador_id'] != user_id:
+                    raise HTTPException(status_code=403, detail="Você não tem nível de Tier suficiente para visualizar este documento")
                 
                 cursor.execute('''
                     SELECT id, texto, usuario_id, replies_to_id, data
@@ -179,6 +194,8 @@ def get_documento(disciplina_id: int, documento_id: int):
                 score = row['score'] if row and row['score'] else 0
 
                 return {"documento": documento, "comentarios": comentarios, "score": score}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar documento: {str(e)}")
     
@@ -194,6 +211,8 @@ def create_comentario(disciplina_id: int, documento_id: int, comentario: CreateC
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Comentário criado com sucesso"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar comentário: {str(e)}")
 
@@ -234,6 +253,8 @@ def create_voto(disciplina_id: int, documento_id: int, voto: CreateVoto, user_id
 
                 conn.commit()
                 return {"message": "Voto registrado com sucesso"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar voto: {str(e)}")
 
@@ -285,6 +306,7 @@ def delete_comentario(comentario_id: int, current_user: dict = Depends(get_curre
                 cursor.execute("DELETE FROM comentario WHERE id = %s", (comentario_id,))
                 conn.commit()
                 return {"message": "Comentário apagado com sucesso"}
-
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao apagar comentário: {str(e)}")

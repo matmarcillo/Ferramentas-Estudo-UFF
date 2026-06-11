@@ -1,6 +1,6 @@
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 
@@ -11,6 +11,7 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -25,6 +26,29 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 def get_current_user_id(current_user: dict = Depends(get_current_user)):
     return current_user["id"]
+
+def get_user_from_header_or_query(
+    token: str = Query(None),
+    credentials: HTTPAuthorizationCredentials = Depends(security_optional)
+):
+    """
+    Dependency that allows authentication via the standard Authorization header 
+    OR a 'token' query parameter (used for direct browser links like downloads).
+    """
+    token_to_use = credentials.credentials if credentials else token
+    
+    if not token_to_use:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+        
+    try:
+        payload = jwt.decode(token_to_use, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        role = payload.get("role")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return {"id": int(user_id), "role": role}
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 def get_current_admin(current_user: dict = Depends(get_current_user)):
     if current_user.get("role") != "admin":

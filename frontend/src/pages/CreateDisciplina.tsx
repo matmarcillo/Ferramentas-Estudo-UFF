@@ -9,8 +9,8 @@ export default function CreateDisciplina() {
     try {
       await api.post('/course', form);
       alert('Disciplina cadastrada com sucesso!');
-    } catch (err) {
-      alert('Erro ao cadastrar disciplina');
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao cadastrar disciplina');
     }
   };
 

@@ -23,6 +23,8 @@ def create_course(req: CreateCourse, user_id: int = Depends(get_current_user_id)
                 new_id = cursor.fetchone()[0]
                 conn.commit()
                 return {"id": new_id, "message": "Course created successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating course: {str(e)}")
 
@@ -49,14 +51,14 @@ def delete_course(course_id: int, admin_id: int = Depends(get_current_admin)):
         raise HTTPException(status_code=500, detail=f"Error deleting course: {str(e)}")
 
 @router.get("/courses")
-
-@router.get("/courses")
 def get_courses():
     try:
         with get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute('SELECT id, nome, codigo, faculdade FROM disciplina ORDER BY nome ASC')
                 return cursor.fetchall()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching courses: {str(e)}")
 
@@ -71,6 +73,8 @@ def search_courses(name: str = Query(..., min_length=1)):
                     (f"%{name}%", f"%{name}%")
                 )
                 return cursor.fetchall()
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching courses: {str(e)}")
 
@@ -136,5 +140,7 @@ def get_course_reviews(course_name: str):
                 ''', (course['id'],))
                 reviews = cursor.fetchall()
                 return {"course_name": course_name, "course_id": course['id'], "reviews": reviews}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching course reviews: {str(e)}")
