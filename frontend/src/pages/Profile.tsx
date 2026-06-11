@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2, RefreshCcw } from 'lucide-react';
 
@@ -129,23 +130,25 @@ export default function Profile() {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {user.documentos.length > 0 ? user.documentos.map((d: any) => (
-                <div key={d.id} className="document-item">
-                  <div style={{ background: 'var(--bg-dark)', padding: '0.75rem', borderRadius: '8px' }}>
-                    <FileText size={20} color="var(--primary)" />
+                <Link key={d.id} to={`/disciplina/${d.disciplina_nome}/documentos/${d.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="document-item">
+                    <div style={{ background: 'var(--bg-dark)', padding: '0.75rem', borderRadius: '8px' }}>
+                      <FileText size={20} color="var(--primary)" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '600' }}>{d.nome}</div>
+                      <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{d.tipo} • {d.disciplina_nome}</div>
+                    </div>
+                    <button 
+                      onClick={(e) => handleDeleteDoc(e, d.id)}
+                      className="secondary"
+                      style={{ padding: '0.5rem', color: 'var(--error)', borderColor: 'transparent', background: 'transparent' }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                    <ChevronRight size={18} color="var(--text-muted)" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '600' }}>{d.nome}</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{d.tipo}</div>
-                  </div>
-                  <button 
-                    onClick={(e) => handleDeleteDoc(e, d.id)}
-                    className="secondary"
-                    style={{ padding: '0.5rem', color: 'var(--error)', borderColor: 'transparent', background: 'transparent' }}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                  <ChevronRight size={18} color="var(--text-muted)" />
-                </div>
+                </Link>
               )) : (
                 <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', color: 'var(--text-muted)' }}>
                   Você ainda não enviou nenhum documento.
@@ -165,7 +168,6 @@ export default function Profile() {
           border-radius: var(--radius);
           border: 1px solid var(--border);
           transition: all 0.2s;
-          cursor: pointer;
         }
         .document-item:hover {
           background: rgba(139, 92, 246, 0.05);
