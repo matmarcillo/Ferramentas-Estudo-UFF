@@ -8,7 +8,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   db:
-    image: postgres:latest
+    image: postgres:17
     container_name: db-game-analytics
     labels:
       - "autoheal=true"
@@ -20,6 +20,7 @@ services:
       - "5432:5432"
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - game_analytics_prod_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
       interval: 5s
@@ -54,3 +55,6 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+
+volumes:
+  game_analytics_prod_data:
