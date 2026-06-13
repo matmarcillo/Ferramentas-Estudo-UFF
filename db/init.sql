@@ -77,7 +77,8 @@ CREATE TABLE IF NOT EXISTS comentario (
 CREATE TABLE IF NOT EXISTS voto (
     id SERIAL PRIMARY KEY,
     documento_id INTEGER NOT NULL REFERENCES documento (id),
-    valor SMALLINT NOT NULL CHECK (valor IN (1, -1)),
+    valor SMALLINT NOT NULL CHECK (valor IN (1, 0, -1)),
     data TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL REFERENCES usuarios (id)
+    usuario_id INTEGER NOT NULL REFERENCES usuarios (id),
+    UNIQUE (usuario_id, documento_id)
 );
