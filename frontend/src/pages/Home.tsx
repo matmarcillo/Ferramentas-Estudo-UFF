@@ -1,7 +1,17 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Search, PlusCircle, Star, ArrowRight } from 'lucide-react';
+import { BookOpen, Users, Search, PlusCircle, Star, ArrowRight, Trophy } from 'lucide-react';
+import api from '../services/api';
 
 export default function Home() {
+  const [topCourses, setTopCourses] = useState<any[]>([]);
+  const [topProfs, setTopProfs] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.get('/courses/ranking?limit=3&order=desc').then(res => setTopCourses(res.data));
+    api.get('/professors/ranking?limit=3&order=desc').then(res => setTopProfs(res.data));
+  }, []);
+
   return (
     <div style={{ padding: '2rem 0' }}>
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -13,7 +23,7 @@ export default function Home() {
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
         <div className="card">
           <h2>
             <BookOpen className="accent" size={24} style={{ color: 'var(--primary)' }} />
@@ -57,6 +67,40 @@ export default function Home() {
         </div>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div className="card">
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <Trophy size={22} color="#ffd700" /> Top 3 Disciplinas
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {topCourses.map((c, i) => (
+              <Link key={c.id} to={`/disciplina/${c.nome}`} className="ranking-item">
+                <span className="rank-number">{i + 1}</span>
+                <span style={{ flex: 1 }}>{c.nome}</span>
+                <span className="rank-score"><Star size={14} fill="currentColor" /> {parseFloat(c.mean_score).toFixed(1)}</span>
+              </Link>
+            ))}
+            {topCourses.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhuma disciplina avaliada ainda.</p>}
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <Trophy size={22} color="#ffd700" /> Top 3 Professores
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {topProfs.map((p, i) => (
+              <Link key={p.id} to={`/professor/${p.nome}`} className="ranking-item">
+                <span className="rank-number">{i + 1}</span>
+                <span style={{ flex: 1 }}>{p.nome}</span>
+                <span className="rank-score"><Star size={14} fill="currentColor" /> {parseFloat(p.mean_score).toFixed(1)}</span>
+              </Link>
+            ))}
+            {topProfs.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Nenhum professor avaliado ainda.</p>}
+          </div>
+        </div>
+      </div>
+
       <style>{`
         .nav-link-item {
           display: flex;
@@ -82,7 +126,37 @@ export default function Home() {
         .nav-link-item:hover .arrow {
           opacity: 1;
         }
+
+        .ranking-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 0.75rem;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: var(--radius);
+          color: var(--text-main);
+          text-decoration: none;
+          transition: transform 0.2s;
+        }
+        .ranking-item:hover {
+          transform: translateX(5px);
+          background: rgba(255, 255, 255, 0.05);
+        }
+        .rank-number {
+          font-weight: bold;
+          color: var(--primary);
+          width: 20px;
+        }
+        .rank-score {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-weight: bold;
+          color: var(--accent);
+          font-size: 0.875rem;
+        }
       `}</style>
     </div>
   );
 }
+

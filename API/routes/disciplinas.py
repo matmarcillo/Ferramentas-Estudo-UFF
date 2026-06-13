@@ -98,6 +98,32 @@ def get_course_by_name(name: str = Query(..., min_length=1)):
         raise HTTPException(status_code=500, detail=f"Error fetching course by name: {str(e)}")
 
 
+@router.get("/courses/ranking")
+def get_courses_ranking(limit: int = 10, order: str = "desc"):
+    try:
+        if order.lower() not in ["asc", "desc"]:
+            order = "desc"
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                query = f"""
+                    SELECT 
+                        d.id, 
+                        d.nome, 
+                        d.codigo,
+                        AVG((av.dificuldade + av.utilidade + av.interesse + av.carga_trabalho) / 4.0) as mean_score,
+                        COUNT(av.id) as review_count
+                    FROM disciplina d
+                    JOIN avaliacao_disciplina av ON d.id = av.disciplina_id
+                    GROUP BY d.id
+                    ORDER BY mean_score {order}
+                    LIMIT %s
+                """
+                cursor.execute(query, (limit,))
+                return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching course ranking: {str(e)}")
+
+
 @router.get("/course/{course_name}")
 def get_course(course_name: str):
     try:
