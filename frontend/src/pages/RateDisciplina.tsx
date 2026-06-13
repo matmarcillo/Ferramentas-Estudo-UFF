@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../services/api';
+import { courseMetricsMapping } from '../utils/metricsMapping';
 
 export default function RateDisciplina() {
   const location = useLocation();
@@ -13,9 +14,10 @@ export default function RateDisciplina() {
     disciplina_id: preSelectedDisciplinaId, 
     semestre_id: '', 
     professor_id: '', 
-    metrica_1: 5, 
-    metrica_2: 5, 
-    metrica_3: 5, 
+    dificuldade: 3, 
+    utilidade: 3, 
+    interesse: 3, 
+    carga_trabalho: 3,
     status_aprovacao: 'Aprovado',
     comentario: '' 
   });
@@ -78,20 +80,20 @@ export default function RateDisciplina() {
           </select>
         </div>
 
-        <div className="form-group">
-          <label>Métrica 1 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_1} onChange={e => setForm({...form, metrica_1: parseInt(e.target.value)})} required />
-        </div>
-
-        <div className="form-group">
-          <label>Métrica 2 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_2} onChange={e => setForm({...form, metrica_2: parseInt(e.target.value)})} required />
-        </div>
-
-        <div className="form-group">
-          <label>Métrica 3 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_3} onChange={e => setForm({...form, metrica_3: parseInt(e.target.value)})} required />
-        </div>
+        {Object.entries(courseMetricsMapping).map(([key, metric]) => (
+          <div className="form-group" key={key}>
+            <label>{metric.label}</label>
+            <select 
+              value={(form as any)[key]} 
+              onChange={e => setForm({...form, [key]: parseInt(e.target.value)})} 
+              required
+            >
+              {Object.entries(metric.options).map(([val, label]) => (
+                <option key={val} value={val}>{val} - {label}</option>
+              ))}
+            </select>
+          </div>
+        ))}
 
         <div className="form-group">
           <label>Status de Aprovação</label>

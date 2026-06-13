@@ -29,18 +29,19 @@ class CreateAvaliacao(BaseModel):
     disciplina_id: int
     semestre_id: int
     professor_id: int | None = None
-    metrica_1: int
-    metrica_2: int
-    metrica_3: int
+    dificuldade: int
+    utilidade: int
+    interesse: int
+    carga_trabalho: int
     status_aprovacao: Aprovacao
     comentario: str
 
 class CreateAvaliacaoProfessor(BaseModel):
     professor_id: int
     semestre_id: int
-    metrica_1: int
-    metrica_2: int
-    metrica_3: int
+    pedagogia: int
+    organizacao: int
+    rigidez: int
     comentario: str
 
 class CreateDocumento(BaseModel):

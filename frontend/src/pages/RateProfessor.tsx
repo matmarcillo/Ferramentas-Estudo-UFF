@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../services/api';
+import { professorMetricsMapping } from '../utils/metricsMapping';
 
 export default function RateProfessor() {
   const location = useLocation();
@@ -11,9 +12,9 @@ export default function RateProfessor() {
   const [form, setForm] = useState({ 
     professor_id: preSelectedProfessorId, 
     semestre_id: '', 
-    metrica_1: 5, 
-    metrica_2: 5, 
-    metrica_3: 5, 
+    pedagogia: 3, 
+    organizacao: 3, 
+    rigidez: 3, 
     comentario: '' 
   });
 
@@ -65,20 +66,20 @@ export default function RateProfessor() {
           </select>
         </div>
 
-        <div className="form-group">
-          <label>Métrica 1 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_1} onChange={e => setForm({...form, metrica_1: parseInt(e.target.value)})} required />
-        </div>
-
-        <div className="form-group">
-          <label>Métrica 2 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_2} onChange={e => setForm({...form, metrica_2: parseInt(e.target.value)})} required />
-        </div>
-
-        <div className="form-group">
-          <label>Métrica 3 (1-5)</label>
-          <input type="number" min="1" max="5" value={form.metrica_3} onChange={e => setForm({...form, metrica_3: parseInt(e.target.value)})} required />
-        </div>
+        {Object.entries(professorMetricsMapping).map(([key, metric]) => (
+          <div className="form-group" key={key}>
+            <label>{metric.label}</label>
+            <select 
+              value={(form as any)[key]} 
+              onChange={e => setForm({...form, [key]: parseInt(e.target.value)})} 
+              required
+            >
+              {Object.entries(metric.options).map(([val, label]) => (
+                <option key={val} value={val}>{val} - {label}</option>
+              ))}
+            </select>
+          </div>
+        ))}
 
         <div className="form-group">
           <label>Comentário</label>
