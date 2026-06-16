@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS avaliacao_disciplina (
     interesse SMALLINT NOT NULL CHECK (interesse BETWEEN 1 AND 5),
     carga_trabalho SMALLINT NOT NULL CHECK (carga_trabalho BETWEEN 1 AND 5),
     status_aprovacao VARCHAR(20) NOT NULL,
-    comentario TEXT -- Added comentario
+    comentario TEXT, -- Added comentario
+    date_uploaded TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS avaliacao_professor (
@@ -51,7 +52,8 @@ CREATE TABLE IF NOT EXISTS avaliacao_professor (
     pedagogia SMALLINT NOT NULL CHECK (pedagogia BETWEEN 1 AND 5),
     organizacao SMALLINT NOT NULL CHECK (organizacao BETWEEN 1 AND 5),
     rigidez SMALLINT NOT NULL CHECK (rigidez BETWEEN 1 AND 5),
-    comentario TEXT -- Added comentario
+    comentario TEXT, -- Added comentario
+    date_uploaded TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS documento (
@@ -62,8 +64,16 @@ CREATE TABLE IF NOT EXISTS documento (
     semestro_id INTEGER NOT NULL REFERENCES semestro (id),
     publicador_id INTEGER NOT NULL REFERENCES usuarios(id),
     link TEXT NOT NULL,
-    nome VARCHAR(255) NOT NULL
+    nome VARCHAR(255) NOT NULL,
+    date_uploaded TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS system_config (
+    key VARCHAR(50) PRIMARY KEY,
+    value VARCHAR(255) NOT NULL
+);
+
+INSERT INTO system_config (key, value) VALUES ('double_xp_active', 'false') ON CONFLICT (key) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS comentario (
     id SERIAL PRIMARY KEY,

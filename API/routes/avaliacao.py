@@ -3,7 +3,7 @@ from psycopg2.extras import RealDictCursor
 from api_types import *
 from bdd import get_db
 from auth import get_current_user_id
-from tier_system import EXP_REWARDS
+from tier_system import EXP_REWARDS, get_xp_multiplier
 
 router = APIRouter(tags=["Avaliação"])
 
@@ -30,9 +30,10 @@ def create_avaliacao(req: CreateAvaliacao, user_id: int = Depends(get_current_us
                 new_id = cursor.fetchone()[0]
                 
                 # Award EXP
+                exp_to_add = EXP_REWARDS["review"] * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
-                    (EXP_REWARDS["review"], user_id)
+                    (exp_to_add, user_id)
                 )
                 
                 conn.commit()
@@ -60,9 +61,10 @@ def create_avaliacao_professor(req: CreateAvaliacaoProfessor, user_id: int = Dep
                 new_id = cursor.fetchone()[0]
                 
                 # Award EXP
+                exp_to_add = EXP_REWARDS["review"] * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
-                    (EXP_REWARDS["review"], user_id)
+                    (exp_to_add, user_id)
                 )
                 
                 conn.commit()

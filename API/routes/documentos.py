@@ -8,7 +8,7 @@ import uuid
 from api_types import *
 from bdd import get_db
 from auth import get_current_user_id, get_user_from_header_or_query
-from tier_system import EXP_REWARDS, get_tier_info
+from tier_system import EXP_REWARDS, get_tier_info, get_xp_multiplier
 
 TIER_MAP = {
     "prova": 1,
@@ -55,7 +55,8 @@ def create_documento(
                 new_id = cursor.fetchone()[0]
 
                 # Award EXP based on type
-                exp_to_add = EXP_REWARDS["doc_resumo"] if tipo == "resumo" else EXP_REWARDS["doc_other"]
+                base_exp = EXP_REWARDS["doc_resumo"] if tipo == "resumo" else EXP_REWARDS["doc_other"]
+                exp_to_add = base_exp * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
                     (exp_to_add, user_id)
@@ -245,7 +246,7 @@ def create_voto(disciplina_id: int, documento_id: int, voto: CreateVoto, user_id
                 )
                 
                 # Update the exp of the document publisher
-                exp_change = (voto.valor.value - existing_vote) * VOTE_VALUE
+                exp_change = (voto.valor.value - existing_vote) * VOTE_VALUE * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = (SELECT publicador_id FROM documento WHERE id = %s)",
                     (exp_change, voto.documento_id)

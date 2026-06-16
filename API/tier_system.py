@@ -44,3 +44,13 @@ EXP_REWARDS = {
     "doc_resumo": 30,
     "doc_other": 20
 }
+
+DOUBLE_XP_ACTIVE = False
+
+def set_double_xp(active: bool):
+    global DOUBLE_XP_ACTIVE
+    DOUBLE_XP_ACTIVE = active
+
+def get_xp_multiplier() -> int:
+    """Returns the coefficient for XP calculations."""
+    return 2 if DOUBLE_XP_ACTIVE else 1
