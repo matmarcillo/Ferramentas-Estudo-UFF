@@ -93,6 +93,32 @@ def get_professor_by_name(name: str = Query(..., min_length=1)):
         raise HTTPException(status_code=500, detail=f"Error fetching professor by name: {str(e)}")
 
 
+@router.get("/professors/ranking")
+def get_professors_ranking(limit: int = 10, order: str = "desc"):
+    try:
+        if order.lower() not in ["asc", "desc"]:
+            order = "desc"
+        with get_db() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                query = f"""
+                    SELECT 
+                        p.id, 
+                        p.nome, 
+                        p.departamento,
+                        AVG((av.pedagogia + av.organizacao + av.rigidez) / 3.0) as mean_score,
+                        COUNT(av.id) as review_count
+                    FROM professor p
+                    JOIN avaliacao_professor av ON p.id = av.professor_id
+                    GROUP BY p.id
+                    ORDER BY mean_score {order}
+                    LIMIT %s
+                """
+                cursor.execute(query, (limit,))
+                return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching professor ranking: {str(e)}")
+
+
 @router.get("/professor/{professor_name}")
 def get_professor(professor_name: str):
     try:
@@ -127,7 +153,7 @@ def get_professor_reviews(professor_name: str):
 
                 cursor.execute('''
                     SELECT av.id, av.estudante_id, av.semestro_id,
-                           av.metrica_1, av.metrica_2, av.metrica_3,
+                           av.pedagogia, av.organizacao, av.rigidez,
                            av.comentario
                     FROM avaliacao_professor av
                     WHERE av.professor_id = %s

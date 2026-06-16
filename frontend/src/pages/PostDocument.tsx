@@ -43,12 +43,12 @@ export default function PostDocument() {
     formData.append('tipo', form.tipo);
 
     try {
-      await api.post('/documento', formData, {
+      const res = await api.post('/documento', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert('Documento postado com sucesso!');
+      alert(`Documento postado com sucesso! Você ganhou ${res.data.exp_earned} EXP!`);
       // Navigate back to the course documents page
       const course = courses.find(c => c.id === parseInt(form.disciplina_id));
       if (course) {

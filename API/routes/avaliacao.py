@@ -3,7 +3,7 @@ from psycopg2.extras import RealDictCursor
 from api_types import *
 from bdd import get_db
 from auth import get_current_user_id
-from tier_system import EXP_REWARDS
+from tier_system import EXP_REWARDS, get_xp_multiplier
 
 router = APIRouter(tags=["Avaliação"])
 
@@ -24,19 +24,24 @@ def create_avaliacao(req: CreateAvaliacao, user_id: int = Depends(get_current_us
 
 
                 cursor.execute(
-                    "INSERT INTO avaliacao_disciplina (estudante_id, disciplina_id, semestro_id, professor_id, metrica_1, metrica_2, metrica_3, status_aprovacao, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (user_id, req.disciplina_id, req.semestre_id, req.professor_id, req.metrica_1, req.metrica_2, req.metrica_3, req.status_aprovacao.value, req.comentario)
+                    "INSERT INTO avaliacao_disciplina (estudante_id, disciplina_id, semestro_id, professor_id, dificuldade, utilidade, interesse, carga_trabalho, status_aprovacao, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (user_id, req.disciplina_id, req.semestre_id, req.professor_id, req.dificuldade, req.utilidade, req.interesse, req.carga_trabalho, req.status_aprovacao.value, req.comentario)
                 )
                 new_id = cursor.fetchone()[0]
                 
                 # Award EXP
+                exp_to_add = EXP_REWARDS["review"] * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
-                    (EXP_REWARDS["review"], user_id)
+                    (exp_to_add, user_id)
                 )
                 
                 conn.commit()
-                return {"id": new_id, "message": "Avaliação de disciplina criada com sucesso"}
+                return {
+                    "id": new_id, 
+                    "message": "Avaliação de disciplina criada com sucesso",
+                    "exp_earned": exp_to_add
+                }
     except HTTPException:
         raise
     except Exception as e:
@@ -54,19 +59,24 @@ def create_avaliacao_professor(req: CreateAvaliacaoProfessor, user_id: int = Dep
                     raise HTTPException(status_code=400, detail="Você ja avaliou o professor.")
 
                 cursor.execute(
-                    "INSERT INTO avaliacao_professor (estudante_id, professor_id, semestro_id, metrica_1, metrica_2, metrica_3, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (user_id, req.professor_id, req.semestre_id, req.metrica_1, req.metrica_2, req.metrica_3, req.comentario)
+                    "INSERT INTO avaliacao_professor (estudante_id, professor_id, semestro_id, pedagogia, organizacao, rigidez, comentario) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (user_id, req.professor_id, req.semestre_id, req.pedagogia, req.organizacao, req.rigidez, req.comentario)
                 )
                 new_id = cursor.fetchone()[0]
                 
                 # Award EXP
+                exp_to_add = EXP_REWARDS["review"] * get_xp_multiplier()
                 cursor.execute(
                     "UPDATE usuarios SET exp = exp + %s WHERE id = %s",
-                    (EXP_REWARDS["review"], user_id)
+                    (exp_to_add, user_id)
                 )
                 
                 conn.commit()
-                return {"id": new_id, "message": "Avaliação de professor criada com sucesso"}
+                return {
+                    "id": new_id, 
+                    "message": "Avaliação de professor criada com sucesso",
+                    "exp_earned": exp_to_add
+                }
     except HTTPException:
         raise
     except Exception as e:

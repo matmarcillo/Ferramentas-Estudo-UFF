@@ -10,6 +10,7 @@ import Professor from './pages/Professor';
 import CreateProfessor from './pages/CreateProfessor';
 import CreateDisciplina from './pages/CreateDisciplina';
 import CreateSemester from './pages/CreateSemester';
+import Admin from './pages/Admin';
 import PostDocument from './pages/PostDocument';
 import RateProfessor from './pages/RateProfessor';
 import RateDisciplina from './pages/RateDisciplina';
@@ -48,7 +49,7 @@ function App() {
                </NavLink>
             )}
             {isAdmin && (
-              <NavLink to="/create-semester" className={({ isActive }) => isActive ? 'active' : ''}>
+              <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''}>
                 <Settings size={18} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
                 Admin
               </NavLink>
@@ -85,6 +86,7 @@ function App() {
             <Route path="/create-professor" element={<CreateProfessor />} />
             <Route path="/create-disciplina" element={<CreateDisciplina />} />
             <Route path="/create-semester" element={<CreateSemester />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/post-document" element={<PostDocument />} />
             <Route path="/rate-professor" element={<RateProfessor />} />
             <Route path="/rate-disciplina" element={<RateDisciplina />} />
