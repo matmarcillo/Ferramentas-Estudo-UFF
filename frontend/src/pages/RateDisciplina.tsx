@@ -40,13 +40,13 @@ export default function RateDisciplina() {
       return;
     }
     try {
-      await api.post('/avaliacao/disciplina', {
+      const res = await api.post('/avaliacao/disciplina', {
         ...form,
         disciplina_id: parseInt(form.disciplina_id),
         semestre_id: parseInt(form.semestre_id as string),
         professor_id: form.professor_id ? parseInt(form.professor_id) : null
       });
-      alert('Avaliação enviada!');
+      alert(`Avaliação enviada! Você ganhou ${res.data.exp_earned} EXP!`);
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }

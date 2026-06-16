@@ -51,6 +51,10 @@ def set_double_xp(active: bool):
     global DOUBLE_XP_ACTIVE
     DOUBLE_XP_ACTIVE = active
 
+def is_double_xp_active() -> bool:
+    """Returns the current status of Double XP mode."""
+    return DOUBLE_XP_ACTIVE
+
 def get_xp_multiplier() -> int:
     """Returns the coefficient for XP calculations."""
     return 2 if DOUBLE_XP_ACTIVE else 1

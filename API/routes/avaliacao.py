@@ -37,7 +37,11 @@ def create_avaliacao(req: CreateAvaliacao, user_id: int = Depends(get_current_us
                 )
                 
                 conn.commit()
-                return {"id": new_id, "message": "Avaliação de disciplina criada com sucesso"}
+                return {
+                    "id": new_id, 
+                    "message": "Avaliação de disciplina criada com sucesso",
+                    "exp_earned": exp_to_add
+                }
     except HTTPException:
         raise
     except Exception as e:
@@ -68,7 +72,11 @@ def create_avaliacao_professor(req: CreateAvaliacaoProfessor, user_id: int = Dep
                 )
                 
                 conn.commit()
-                return {"id": new_id, "message": "Avaliação de professor criada com sucesso"}
+                return {
+                    "id": new_id, 
+                    "message": "Avaliação de professor criada com sucesso",
+                    "exp_earned": exp_to_add
+                }
     except HTTPException:
         raise
     except Exception as e:

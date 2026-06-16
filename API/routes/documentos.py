@@ -63,7 +63,12 @@ def create_documento(
                 )
 
                 conn.commit()
-                return {"id": new_id, "message": "Documento criado com sucesso", "file_path": link}
+                return {
+                    "id": new_id, 
+                    "message": "Documento criado com sucesso", 
+                    "file_path": link,
+                    "exp_earned": exp_to_add
+                }
     except HTTPException:
         raise
     except Exception as e:

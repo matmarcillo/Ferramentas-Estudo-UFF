@@ -35,12 +35,12 @@ export default function RateProfessor() {
       return;
     }
     try {
-      await api.post('/avaliacao/professor', {
+      const res = await api.post('/avaliacao/professor', {
         ...form,
         professor_id: parseInt(form.professor_id),
         semestre_id: parseInt(form.semestre_id as string)
       });
-      alert('Avaliação enviada!');
+      alert(`Avaliação enviada! Você ganhou ${res.data.exp_earned} EXP!`);
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Erro ao enviar avaliação');
     }

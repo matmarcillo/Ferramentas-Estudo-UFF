@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from psycopg2.extras import RealDictCursor
 from bdd import get_db
 from auth import get_current_admin
-from tier_system import set_double_xp, DOUBLE_XP_ACTIVE
+from tier_system import set_double_xp, is_double_xp_active
 
 router = APIRouter(tags=["Admin"], prefix="/admin")
 
@@ -36,7 +36,7 @@ def get_telemetry(_ = Depends(get_current_admin)):
 
 @router.get("/double-xp")
 def get_double_xp_status(_ = Depends(get_current_admin)):
-    return {"active": DOUBLE_XP_ACTIVE}
+    return {"active": is_double_xp_active()}
 
 @router.post("/double-xp")
 def toggle_double_xp(active: bool, _ = Depends(get_current_admin)):
