@@ -11,9 +11,14 @@ export default function Profile() {
     api.get('/users/me').then(res => {
       setUser(res.data);
       setLoading(false);
-    }).catch(() => {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    }).catch((err: any) => {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      } else {
+        alert(err.response?.data?.detail || "Erro ao carregar perfil");
+        setLoading(false);
+      }
     });
   };
 
