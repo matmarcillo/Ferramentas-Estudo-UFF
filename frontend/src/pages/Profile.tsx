@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2, RefreshCcw } from 'lucide-react';
+import { User, Mail, Award, FileText, Zap, ChevronRight, Trash2, RefreshCcw, Star, MessageSquare, BarChart3 } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
@@ -120,6 +120,33 @@ export default function Profile() {
               <span className="badge badge-accent"><Zap size={12} /> Veterano</span>
             </div>
           </div>
+
+          <div className="card">
+            <h3>Estatísticas</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <BarChart3 size={18} color="var(--primary)" />
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user.documentos.length}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Documentos Postados</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <MessageSquare size={18} color="var(--accent)" />
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user.avaliacoes_disciplina.length}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Avaliações de Disciplinas</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Star size={18} color="#f59e0b" />
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user.avaliacoes_professor.length}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Avaliações de Professores</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
@@ -157,6 +184,65 @@ export default function Profile() {
               )) : (
                 <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', color: 'var(--text-muted)' }}>
                   Você ainda não enviou nenhum documento.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <MessageSquare size={24} style={{ color: 'var(--accent)' }} />
+              Minhas Avaliações de Disciplinas
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+              {user.avaliacoes_disciplina.length > 0 ? user.avaliacoes_disciplina.map((a: any) => (
+                <div key={a.id} className="document-item" style={{ cursor: 'default' }}>
+                  <div style={{ background: 'var(--bg-dark)', padding: '0.75rem', borderRadius: '8px' }}>
+                    <Star size={20} color="var(--accent)" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600' }}>{a.disciplina_nome}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                      Dificuldade: {a.dificuldade}/5 • Utilidade: {a.utilidade}/5 • Interesse: {a.interesse}/5 • Carga: {a.carga_trabalho}/5
+                    </div>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span className={`badge ${a.status_aprovacao === 'Aprovado' ? 'badge-accent' : 'badge-primary'}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem' }}>
+                        {a.status_aprovacao}
+                      </span>
+                    </div>
+                    {a.comentario && <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', fontStyle: 'italic' }}>"{a.comentario}"</div>}
+                  </div>
+                </div>
+              )) : (
+                <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', color: 'var(--text-muted)' }}>
+                  Você ainda não avaliou nenhuma disciplina.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Star size={24} style={{ color: '#f59e0b' }} />
+              Minhas Avaliações de Professores
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+              {user.avaliacoes_professor.length > 0 ? user.avaliacoes_professor.map((a: any) => (
+                <div key={a.id} className="document-item" style={{ cursor: 'default' }}>
+                  <div style={{ background: 'var(--bg-dark)', padding: '0.75rem', borderRadius: '8px' }}>
+                    <User size={20} color="#f59e0b" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600' }}>{a.professor_nome}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                      Pedagogia: {a.pedagogia}/5 • Organização: {a.organizacao}/5 • Rigidez: {a.rigidez}/5
+                    </div>
+                    {a.comentario && <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', fontStyle: 'italic' }}>"{a.comentario}"</div>}
+                  </div>
+                </div>
+              )) : (
+                <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', color: 'var(--text-muted)' }}>
+                  Você ainda não avaliou nenhum professor.
                 </div>
               )}
             </div>
