@@ -46,7 +46,7 @@ export default function Login() {
           </div>
           <h1>{isRegister ? 'Criar Conta' : 'Bem-vindo de volta'}</h1>
           <p style={{ color: 'var(--text-muted)' }}>
-            {isRegister ? 'Junte-se à comunidade Game Analytics' : 'Acesse sua conta para continuar'}
+            {isRegister ? 'Junte-se à comunidade AvaliUFF' : 'Acesse sua conta para continuar'}
           </p>
         </div>
 

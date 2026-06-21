@@ -32,7 +32,7 @@ function App() {
       <div className="app-container">
         <nav className="navbar">
           <NavLink to="/" className="nav-brand" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-main)' }}>
-            Game Analytics
+            AvaliUFF
           </NavLink>
           <div className="nav-links">
             <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
@@ -99,7 +99,7 @@ function App() {
         <footer className="footer">
           <div className="footer-content">
             <div className="footer-section">
-              <h4>Game Analytics</h4>
+              <h4>AvaliUFF</h4>
               <p>Promovendo a colaboração e transparência acadêmica na UFF.</p>
             </div>
             <div className="footer-section">
@@ -122,7 +122,7 @@ function App() {
           </div>
           <div className="footer-bottom">
             <p>Feito com <Heart size={14} style={{ color: '#ef4444' }} /> por estudantes para estudantes</p>
-            <p>&copy; {new Date().getFullYear()} Game Analytics UFF</p>
+            <p>&copy; {new Date().getFullYear()} AvaliUFF</p>
           </div>
         </footer>
       </div>

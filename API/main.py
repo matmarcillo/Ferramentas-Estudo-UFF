@@ -5,7 +5,7 @@ from routes import usuarios, disciplinas, professores, geral, documentos, avalia
 from bdd import get_db
 from tier_system import set_double_xp
 
-app = FastAPI(title="Game Analytics API")
+app = FastAPI(title="AvaliUFF API")
 
 @app.on_event("startup")
 def startup_event():

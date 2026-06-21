@@ -1,7 +1,7 @@
 services:
   autoheal:
     image: willfarrell/autoheal:latest
-    container_name: autoheal-game-analytics
+    container_name: autoheal-avaliuff
     restart: unless-stopped
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
@@ -9,7 +9,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   db:
     image: postgres:17
-    container_name: db-game-analytics
+    container_name: db-avaliuff
     labels:
       - "autoheal=true"
     environment:
@@ -18,7 +18,7 @@ services:
       POSTGRES_DB: mydb
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - game_analytics_prod_data:/var/lib/postgresql/data
+      - avaliuff_prod_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
       interval: 5s
@@ -28,7 +28,7 @@ services:
 
   api:
     build: ./API
-    container_name: api-game-analytics
+    container_name: api-avaliuff
     labels:
       - "autoheal=true"
     environment:
@@ -45,7 +45,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: frontend-game-analytics
+    container_name: frontend-avaliuff
     labels:
       - "autoheal=true"
     ports:
@@ -55,4 +55,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  game_analytics_prod_data:
+  avaliuff_prod_data:
