@@ -6,12 +6,17 @@ Este projeto tem como objetivo criar um aplicativo gameificado para promover a a
 O objetivo é criar um sistema participativo e comunitario na UFF pra centralizar as ferramentas de estudo, antigamente dificeis de encontrar.  
 Temos tirado inspiração de plataformas comunitárias [`Shwet`](https://shwet.assos.utc.fr/) e [`UVweb`](https://assos.utc.fr/uvweb/web/) da Universidade de Tecnologia de Compiègne (UTC) na França, onde os estudantes compartilham documentos e avaliam as disciplinas. Aqui queremos criar algo similar, mas combinando as duas.  
 
+Uma versão inicial do projeto já está disponível, até o final de julho 2026 (porque a minha promoção de creditos clouds acaba depois), e a ideia é deixar alunos testarem, e se quiserem manter o projeto, é possivel dar um fork. Aproveitem!  
+[AvaliUFF](http://129.212.196.187/)
+
 ## Features
 
 - Publicação de documentos
 - Avaliação de disciplinas
   - Sistema de pontos
 - Consulta de documentos e de avaliações
+- Modo administrador para gerenciar o conteúdo e os usuários
+  - O credencial de administrador é `mateo@uff.br`, pode mudar em [`db/init.sql`](db/init.sql).
 
 ## Arquitetura
 
@@ -31,10 +36,11 @@ Ideia é ter tudas as informações relevantes a so um join de distancia, o que 
 
 O backend vai ser desenvolvido em Python, baseado em um API RESTful. Ele vai ser responsável por processar as avaliações, gerenciar os documentos e interagir com o banco de dados.  
 Vamos usar um framework web leve, como Flask ou FastAPI, pra facilitar o desenvolvimento e a manutenção do backend. Ele vai expor endpoints para as funcionalidades principais do aplicativo, como avaliação de disciplinas, publicação de documentos e consulta de informações.
+No momento, a autenticação é "falsa". Login so é feito com o email, e não tem senha. Fizemos pra virar mas simples o uso como é uma demo, mas pode ser facilmente implementado.
 
 ## Frontend
 
-Eu (Mateo) não conheço nada de Frontend. Mas a ideia é criar uma interface web simples e intuitiva, onde os estudantes possam facilmente avaliar suas disciplinas, acessar os documentos disponíveis e consultar as avaliações.
+A ideia é criar uma interface web simples e intuitiva, onde os estudantes possam facilmente avaliar suas disciplinas, acessar os documentos disponíveis e consultar as avaliações.
 
 ## Tecnologias
 
@@ -71,3 +77,10 @@ python API/main.py
 cd frontend && npm install
 npm run dev
 ```
+
+## Next Steps
+
+- **Implementar autenticação real com senha**
+  - Implementar autenticação google no dominio da UFF
+- adicionar sistema de confianza, e moderação de documentos
+- adicionar sistema de feedback
